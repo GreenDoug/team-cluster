@@ -65,7 +65,7 @@ export default function AdminDashboard() {
               <div className="card-actions">
                 <button
                   className="btn primary"
-                  onClick={() => updateStatus(c.id, "approved")}
+                  onClick={() => updateStatus(c.id, "active")}
                 >
                   Accept
                 </button>

@@ -17,8 +17,8 @@ $safe_name = $conn->real_escape_string($name);
 $safe_description = $conn->real_escape_string($description);
 
 $conn->query(
-    "INSERT INTO clusters (name, description, coach_id, status)
-     VALUES ('$safe_name', '$safe_description', $coach_id, 'pending')"
+    "INSERT INTO clusters (name, description, coach_id, status, created_at)
+     VALUES ('$safe_name', '$safe_description', $coach_id, 'pending', NOW())"
 );
 
 if ($conn->error) {
@@ -31,5 +31,8 @@ $id = $conn->insert_id;
 echo json_encode([
     "id" => $id,
     "name" => $name,
-    "status" => "pending"
+    "description" => $description,
+    "status" => "pending",
+    "members" => 0,
+    "created_at" => date("Y-m-d")
 ])

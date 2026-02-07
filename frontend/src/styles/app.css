@@ -211,6 +211,45 @@ body {
   gap: 8px;
 }
 
+.table-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.table-header,
+.table-row {
+  display: grid;
+  grid-template-columns: 1.3fr 1.8fr 0.6fr 0.8fr 0.7fr 0.7fr;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  font-size: 12px;
+}
+
+.table-header {
+  background: #f9fafb;
+  font-weight: 600;
+  color: #1d4ed8;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.table-row {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.table-row:last-child {
+  border-bottom: none;
+}
+
+.table-cell {
+  color: #1f2937;
+}
+
+.table-cell.muted {
+  color: #6b7280;
+}
+
 .badge {
   padding: 2px 8px;
   border-radius: 999px;
@@ -229,11 +268,19 @@ body {
 }
 
 .pending { background: #fde68a; }
-.approved { background: #bbf7d0; }
+.active { background: #bbf7d0; }
 .rejected { background: #fecaca; }
 
 .error {
   color: red;
+}
+
+.btn.link {
+  border: none;
+  background: none;
+  color: #2563eb;
+  padding: 0;
+  font-weight: 600;
 }
 
 @media (max-width: 900px) {

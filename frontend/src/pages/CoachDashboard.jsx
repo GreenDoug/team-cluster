@@ -12,9 +12,16 @@ export default function CoachDashboard() {
     apiFetch("api/coach_clusters.php").then(setClusters);
   }, []);
 
-const handleChange = event => {
+  const handleChange = event => {
     const { name, value } = event.target;
     setFormValues(prev => ({ ...prev, [name]: value }));
+  };
+
+  const formatDate = value => {
+    if (!value) return "—";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toISOString().slice(0, 10);
   };
 
   const handleSubmit = async event => {
@@ -139,29 +146,45 @@ const handleChange = event => {
           {clusters.length === 0 && (
             <div className="empty-state">No clusters assigned yet.</div>
           )}
-
-          {clusters.map(c => (
-            <div key={c.id} className="card">
-              <div className="card-details">
-                <strong>{c.name}</strong>
-                <span className={`badge ${c.status}`}>{c.status}</span>
+        
+          {clusters.length > 0 && (
+            <div className="table-card">
+              <div className="table-header">
+                <div>Cluster Name</div>
+                <div>Description</div>
+                <div>Members</div>
+                <div>Created</div>
+                <div>Status</div>
+                <div>Action</div>
               </div>
-
-              <div className="card-actions">
-                <button className="btn secondary">Edit</button>
-                <button
-                  className="btn"
-                  disabled={c.status !== "approved"}
-                  onClick={() =>
-                    window.location.href =
-                      `/coach/manage_members.php?cluster_id=${c.id}`
-                  }
-                >
-                  Manage
-                </button>
-              </div>
+             {clusters.map(c => (
+                <div key={c.id} className="table-row">
+                  <div className="table-cell">{c.name}</div>
+                  <div className="table-cell muted">
+                    {c.description || "—"}
+                  </div>
+                  <div className="table-cell">{c.members ?? 0}</div>
+                  <div className="table-cell">{formatDate(c.created_at)}</div>
+                  <div className="table-cell">
+                    <span className={`badge ${c.status}`}>{c.status}</span>
+                  </div>
+                  <div className="table-cell">
+                    <button
+                      className="btn link"
+                      type="button"
+                      disabled={c.status !== "active"}
+                      onClick={() =>
+                        window.location.href =
+                          `/coach/manage_members.php?cluster_id=${c.id}`
+                      }
+                    >
+                      Manage
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </section>
       </main>
     </div>
