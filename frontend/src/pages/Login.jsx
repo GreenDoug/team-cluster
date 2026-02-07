@@ -24,7 +24,14 @@ export default function Login() {
 
       if (!res.ok) throw data;
 
-      window.location.href = `/${data.role}`;
+      const normalizedRole = String(data.role || "").toLowerCase();
+      const redirectPath = normalizedRole.includes("admin")
+        ? "/admin"
+        : normalizedRole.includes("coach")
+          ? "/coach"
+          : "/employee";
+
+      window.location.href = redirectPath;
     } catch (err) {
       setError(err.error || "Login failed");
     }

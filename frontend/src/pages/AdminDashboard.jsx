@@ -24,8 +24,19 @@ export default function AdminDashboard() {
       body: JSON.stringify({ cluster_id: id, status })
     });
 
-    setClusters(clusters.filter(c => c.id !== id));
+    setClusters(prev =>
+      prev.map(cluster =>
+        cluster.id === id ? { ...cluster, status } : cluster
+      )
+    );
   }
+
+  const formatDate = dateString => {
+    if (!dateString) return "—";
+    const parsed = new Date(dateString);
+    if (Number.isNaN(parsed.valueOf())) return dateString;
+    return parsed.toISOString().slice(0, 10);
+  };
 
   return (
     <div className="dashboard">
@@ -60,36 +71,52 @@ export default function AdminDashboard() {
         </header>
 
         <section className="content">
-          <div className="section-title">Pending cluster requests</div>
-
-          {clusters.length === 0 && (
-            <div className="empty-state">No cluster requests pending.</div>
-          )}
-
-          {clusters.map(c => (
-            <div key={c.id} className="card">
-              <div className="card-details">
-                <strong>{c.name}</strong>
-                <span>{c.description}</span>
-                <span>Coach: {c.coach}</span>
+          <div className="section-title">Team clusters</div>
+            {clusters.length === 0 ? (
+            <div className="empty-state">No team clusters available.</div>
+          ) : (
+            <div className="table-card">
+              <div className="table-header">
+                <div>Cluster Name</div>
+                <div>Description</div>
+                <div>Members</div>
+                <div>Created</div>
+                <div>Status</div>
+                <div>Action</div>
               </div>
-
-              <div className="card-actions">
-                <button
-                  className="btn primary"
-                  onClick={() => updateStatus(c.id, "active")}
-                >
-                  Accept
-                </button>
-                <button
-                  className="btn secondary"
-                  onClick={() => updateStatus(c.id, "rejected")}
-                >
-                  Reject
-                </button>
-              </div>
+             {clusters.map(c => (
+                <div key={c.id} className="table-row">
+                  <div className="table-cell">{c.name}</div>
+                  <div className="table-cell muted">{c.description}</div>
+                  <div className="table-cell">{c.members ?? 0}</div>
+                  <div className="table-cell">{formatDate(c.created_at)}</div>
+                  <div className="table-cell">
+                    <span className={`badge ${c.status}`}>{c.status}</span>
+                  </div>
+                  <div className="table-cell">
+                    {c.status === "pending" ? (
+                      <div className="card-actions">
+                        <button
+                          className="btn primary"
+                          onClick={() => updateStatus(c.id, "active")}
+                        >
+                          Accept
+                        </button>
+                        <button
+                          className="btn secondary"
+                          onClick={() => updateStatus(c.id, "rejected")}
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="table-cell muted">—</span>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </section>
       </main>
     </div>
