@@ -15,12 +15,11 @@ $res = $conn->query(
         ON s.cluster_id=c.id
         AND s.employee_id=cm.employee_id
      WHERE cm.employee_id={$_SESSION['user']['id']}
-     AND c.status='approved'"
+     AND c.status='active'"
 );
 
 $out = [];
 while ($r = $res->fetch_assoc()) {
     $out[] = $r;
 }
-
 echo json_encode($out);
