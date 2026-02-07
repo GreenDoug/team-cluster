@@ -5,7 +5,7 @@ export default function Register() {
     fullname: "",
     email: "",
     password: "",
-    role: "employee"
+    role: ""
   });
 
   const [error, setError] = useState("");
@@ -68,7 +68,8 @@ export default function Register() {
           required
         />
 
-        <select name="role" onChange={handleChange}>
+        <select name="role" value={form.role} onChange={handleChange} required>
+          <option value="" disabled>Select Role</option>
           <option value="admin">Admin</option>
           <option value="employee">User Employee</option>
           <option value="coach">Team Coach</option>
