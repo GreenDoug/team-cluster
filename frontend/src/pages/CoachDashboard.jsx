@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import { apiFetch } from "../api/api";
 
 export default function CoachDashboard() {
+  const timeOptions = Array.from({ length: 12 * 60 }, (_, index) => {
+    const hour = Math.floor(index / 60) + 1;
+    const minute = index % 60;
+    return `${hour}:${minute.toString().padStart(2, "0")}`;
+  });
   const [clusters, setClusters] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [formValues, setFormValues] = useState({ name: "", description: "" });
@@ -534,9 +539,11 @@ export default function CoachDashboard() {
                             }))
                           }
                         >
-                          <option value="9:00">9:00</option>
-                          <option value="9:30">9:30</option>
-                          <option value="10:00">10:00</option>
+                          {timeOptions.map(time => (
+                            <option key={`start-${time}`} value={time}>
+                              {time}
+                            </option>
+                          ))}
                         </select>
                         <select
                           value={scheduleForm.startPeriod}
@@ -564,9 +571,11 @@ export default function CoachDashboard() {
                             }))
                           }
                         >
-                          <option value="4:30">4:30</option>
-                          <option value="5:00">5:00</option>
-                          <option value="6:00">6:00</option>
+                          {timeOptions.map(time => (
+                            <option key={`end-${time}`} value={time}>
+                              {time}
+                            </option>
+                          ))}
                         </select>
                         <select
                           value={scheduleForm.endPeriod}
