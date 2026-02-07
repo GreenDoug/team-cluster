@@ -9,14 +9,19 @@ $res = $conn->query(
             c.description,
             c.created_at,
             c.status,
-            u.fullname coach,
+            COALESCE(u.fullname, 'Unknown') AS coach,
             COUNT(cm.employee_id) members
      FROM clusters c
-     JOIN users u ON c.coach_id = u.id
+     LEFT JOIN users u ON c.coach_id = u.id
      LEFT JOIN cluster_members cm ON c.id = cm.cluster_id
-     GROUP BY c.id, c.name, c.description, c.created_at, c.status, u.fullname
+     GROUP BY c.id, c.name, c.description, c.created_at, c.status, coach
      ORDER BY c.created_at DESC"
 );
+
+if ($res === false) {
+    http_response_code(500);
+    exit(json_encode(["error" => "Failed to load clusters."]));
+}
 
 $out = [];
 while ($r = $res->fetch_assoc()) {

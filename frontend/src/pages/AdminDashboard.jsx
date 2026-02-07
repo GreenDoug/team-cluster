@@ -1,12 +1,23 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../api/api";
 
 export default function AdminDashboard() {
   const [clusters, setClusters] = useState([]);
 
-  useEffect(() => {
-    apiFetch("api/admin_clusters.php").then(setClusters);
+  const fetchClusters = useCallback(async () => {
+    try {
+      const data = await apiFetch("api/admin_clusters.php");
+      setClusters(data);
+    } catch (error) {
+      console.error("Failed to load clusters", error);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchClusters();
+    const interval = setInterval(fetchClusters, 5000);
+    return () => clearInterval(interval);
+  }, [fetchClusters]);
 
   const handleLogout = async () => {
     try {
@@ -23,12 +34,7 @@ export default function AdminDashboard() {
       method: "POST",
       body: JSON.stringify({ cluster_id: id, status })
     });
-
-    setClusters(prev =>
-      prev.map(cluster =>
-        cluster.id === id ? { ...cluster, status } : cluster
-      )
-    );
+    fetchClusters();
   }
 
   const formatDate = dateString => {
