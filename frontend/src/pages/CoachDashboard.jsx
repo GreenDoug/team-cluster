@@ -7,6 +7,7 @@ export default function CoachDashboard() {
   const [formValues, setFormValues] = useState({ name: "", description: "" });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeCluster, setActiveCluster] = useState(null);
 
   useEffect(() => {
     apiFetch("api/coach_clusters.php").then(setClusters);
@@ -65,6 +66,14 @@ export default function CoachDashboard() {
     setShowForm(false);
     setFormValues({ name: "", description: "" });
     setError("");
+  };
+
+  const handleManageClick = cluster => {
+    setActiveCluster(cluster);
+  };
+
+  const handleCloseModal = () => {
+    setActiveCluster(null);
   };
 
   return (
@@ -185,10 +194,7 @@ export default function CoachDashboard() {
                       className="btn link"
                       type="button"
                       disabled={c.status !== "active"}
-                      onClick={() =>
-                        window.location.href =
-                          `/coach/manage_members.php?cluster_id=${c.id}`
-                      }
+                      onClick={() => handleManageClick(c)}
                     >
                       Manage
                     </button>
@@ -198,6 +204,35 @@ export default function CoachDashboard() {
             </div>
           )}
         </section>
+        {activeCluster && (
+          <div className="modal-overlay" role="dialog" aria-modal="true">
+            <div className="modal-card">
+              <div className="modal-header">
+                <div>
+                  <div className="modal-title">Manage Team</div>
+                  <div className="modal-subtitle">
+                    {activeCluster.name}
+                  </div>
+                </div>
+                <button
+                  className="btn link"
+                  type="button"
+                  onClick={handleCloseModal}
+                >
+                  Close
+                </button>
+              </div>
+              <div className="modal-body">
+                <p className="modal-text">
+                  Add or update members for this team cluster.
+                </p>
+                <button className="btn primary" type="button">
+                  + Add Member
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
