@@ -8,10 +8,50 @@ export default function CoachDashboard() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeCluster, setActiveCluster] = useState(null);
+  const [members, setMembers] = useState([]);
+  const [memberError, setMemberError] = useState("");
+  const [memberLoading, setMemberLoading] = useState(false);
+  const [availableEmployees, setAvailableEmployees] = useState([]);
+  const [employeeLoading, setEmployeeLoading] = useState(false);
+  const [employeeError, setEmployeeError] = useState("");
+  const [showMemberForm, setShowMemberForm] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState("");
+  const [isAddingMember, setIsAddingMember] = useState(false);
 
   useEffect(() => {
     apiFetch("api/coach_clusters.php").then(setClusters);
   }, []);
+
+  useEffect(() => {
+    if (!activeCluster) return;
+    setMemberLoading(true);
+    setEmployeeLoading(true);
+    setMemberError("");
+    setEmployeeError("");
+    setShowMemberForm(false);
+    setSelectedEmployee("");
+
+    Promise.all([
+      apiFetch(`api/manage_members.php?cluster_id=${activeCluster.id}`),
+      apiFetch("api/employee_list.php")
+    ])
+      .then(([memberData, employeeData]) => {
+        setMembers(memberData);
+        const assigned = new Set(memberData.map(member => member.id));
+        setAvailableEmployees(
+          employeeData.filter(employee => !assigned.has(employee.id))
+        );
+      })
+      .catch(err => {
+        const message = err?.error ?? "Unable to load team members.";
+        setMemberError(message);
+        setEmployeeError(message);
+      })
+      .finally(() => {
+        setMemberLoading(false);
+        setEmployeeLoading(false);
+      });
+  }, [activeCluster]);
 
   const handleLogout = async () => {
     try {
@@ -74,6 +114,43 @@ export default function CoachDashboard() {
 
   const handleCloseModal = () => {
     setActiveCluster(null);
+    setMembers([]);
+    setAvailableEmployees([]);
+    setMemberError("");
+    setEmployeeError("");
+  };
+
+  const handleAddMember = async () => {
+    if (!selectedEmployee || isAddingMember || !activeCluster) return;
+    setIsAddingMember(true);
+    setMemberError("");
+
+    try {
+      const added = await apiFetch("api/add_member.php", {
+        method: "POST",
+        body: JSON.stringify({
+          cluster_id: activeCluster.id,
+          employee_id: Number(selectedEmployee)
+        })
+      });
+      setMembers(prev => [...prev, added]);
+      setAvailableEmployees(prev =>
+        prev.filter(employee => employee.id !== added.id)
+      );
+      setSelectedEmployee("");
+      setShowMemberForm(false);
+      setClusters(prev =>
+        prev.map(cluster =>
+          cluster.id === activeCluster.id
+            ? { ...cluster, members: (cluster.members ?? 0) + 1 }
+            : cluster
+        )
+      );
+    } catch (err) {
+      setMemberError(err?.error ?? "Unable to add member.");
+    } finally {
+      setIsAddingMember(false);
+    }
   };
 
   return (
@@ -226,9 +303,69 @@ export default function CoachDashboard() {
                 <p className="modal-text">
                   Add or update members for this team cluster.
                 </p>
-                <button className="btn primary" type="button">
-                  + Add Member
-                </button>
+                {memberLoading ? (
+                  <div className="modal-text">Loading members...</div>
+                ) : (
+                  <div className="member-list">
+                    {members.length === 0 && (
+                      <div className="modal-text">No members assigned yet.</div>
+                    )}
+                    {members.map(member => (
+                      <div key={member.id} className="member-item">
+                        {member.fullname}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {memberError && <div className="error">{memberError}</div>}
+                <div className="member-actions">
+                  <button
+                    className="btn primary"
+                    type="button"
+                    onClick={() => setShowMemberForm(prev => !prev)}
+                    disabled={employeeLoading || availableEmployees.length === 0}
+                  >
+                    + Add Member
+                  </button>
+                  {employeeLoading && (
+                    <span className="modal-text">Loading employees...</span>
+                  )}
+                  {!employeeLoading &&
+                    availableEmployees.length === 0 &&
+                    !employeeError && (
+                      <span className="modal-text">
+                        All employees are already assigned.
+                      </span>
+                    )}
+                </div>
+                {employeeError && <div className="error">{employeeError}</div>}
+                {showMemberForm && availableEmployees.length > 0 && (
+                  <div className="member-form">
+                    <label className="form-field">
+                      <span>Select employee</span>
+                      <select
+                        className="member-select"
+                        value={selectedEmployee}
+                        onChange={event => setSelectedEmployee(event.target.value)}
+                      >
+                        <option value="">Choose a member</option>
+                        {availableEmployees.map(employee => (
+                          <option key={employee.id} value={employee.id}>
+                            {employee.fullname}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <button
+                      className="btn secondary"
+                      type="button"
+                      onClick={handleAddMember}
+                      disabled={!selectedEmployee || isAddingMember}
+                    >
+                      {isAddingMember ? "Adding..." : "Confirm"}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -345,6 +345,37 @@ body {
   color: #374151;
 }
 
+.member-list {
+  display: grid;
+  gap: 8px;
+}
+
+.member-item {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  font-size: 13px;
+  color: #111827;
+}
+
+.member-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.member-form {
+  display: grid;
+  gap: 10px;
+}
+
+.member-select {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
 @media (max-width: 900px) {
   .dashboard {
     flex-direction: column;
