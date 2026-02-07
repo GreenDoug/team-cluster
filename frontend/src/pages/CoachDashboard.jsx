@@ -17,6 +17,14 @@ export default function CoachDashboard() {
   const [showMemberForm, setShowMemberForm] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [isAddingMember, setIsAddingMember] = useState(false);
+  const [scheduleMember, setScheduleMember] = useState(null);
+  const [scheduleForm, setScheduleForm] = useState({
+    startTime: "9:00",
+    startPeriod: "AM",
+    endTime: "5:00",
+    endPeriod: "PM",
+    days: ["Mon", "Tue", "Wed", "Thu", "Fri"]
+  });
 
   useEffect(() => {
     apiFetch("api/coach_clusters.php").then(setClusters);
@@ -118,6 +126,35 @@ export default function CoachDashboard() {
     setAvailableEmployees([]);
     setMemberError("");
     setEmployeeError("");
+    setScheduleMember(null);
+  };
+
+  const handleOpenSchedule = member => {
+    setScheduleMember(member);
+  };
+
+  const handleCloseSchedule = () => {
+    setScheduleMember(null);
+  };
+
+  const handleToggleDay = day => {
+    setScheduleForm(prev => {
+      const hasDay = prev.days.includes(day);
+      return {
+        ...prev,
+        days: hasDay ? prev.days.filter(item => item !== day) : [...prev.days, day]
+      };
+    });
+  };
+
+  const renderSchedulePreview = member => {
+    if (!member?.schedule) return "Not scheduled";
+    if (typeof member.schedule === "string") return member.schedule;
+    if (Array.isArray(member.schedule)) return member.schedule.join(", ");
+    if (member.schedule.start && member.schedule.end) {
+      return `${member.schedule.start} - ${member.schedule.end}`;
+    }
+    return "Schedule updated";
   };
 
   const handleAddMember = async () => {
@@ -310,9 +347,28 @@ export default function CoachDashboard() {
                     {members.length === 0 && (
                       <div className="modal-text">No members assigned yet.</div>
                     )}
+                    {members.length > 0 && (
+                      <div className="member-header">
+                        <span>Members</span>
+                        <span>Current Schedule</span>
+                        <span className="member-action-col">Action</span>
+                      </div>
+                    )}
                     {members.map(member => (
                       <div key={member.id} className="member-item">
-                        {member.fullname}
+                        <div className="member-name">{member.fullname}</div>
+                        <div className="member-schedule">
+                          {renderSchedulePreview(member)}
+                        </div>
+                        <div className="member-action">
+                          <button
+                            className="btn link"
+                            type="button"
+                            onClick={() => handleOpenSchedule(member)}
+                          >
+                            Schedule
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -366,6 +422,126 @@ export default function CoachDashboard() {
                     </button>
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+        {scheduleMember && (
+          <div className="modal-overlay" role="dialog" aria-modal="true">
+            <div className="modal-card schedule-modal">
+              <div className="modal-header">
+                <div>
+                  <div className="modal-title">Manage Member Schedule</div>
+                  <div className="modal-subtitle">
+                    {scheduleMember.fullname}
+                  </div>
+                </div>
+                <button
+                  className="btn link"
+                  type="button"
+                  onClick={handleCloseSchedule}
+                >
+                  Close
+                </button>
+              </div>
+              <div className="modal-body">
+                <div className="schedule-summary">
+                  <div className="schedule-label">Current schedule</div>
+                  <div className="schedule-preview">
+                    {renderSchedulePreview(scheduleMember)}
+                  </div>
+                </div>
+                <div className="schedule-card">
+                  <div className="schedule-label">Schedule Details</div>
+                  <div className="schedule-time-grid">
+                    <label className="form-field">
+                      <span>Start Time</span>
+                      <div className="schedule-time-row">
+                        <select
+                          value={scheduleForm.startTime}
+                          onChange={event =>
+                            setScheduleForm(prev => ({
+                              ...prev,
+                              startTime: event.target.value
+                            }))
+                          }
+                        >
+                          <option value="9:00">9:00</option>
+                          <option value="9:30">9:30</option>
+                          <option value="10:00">10:00</option>
+                        </select>
+                        <select
+                          value={scheduleForm.startPeriod}
+                          onChange={event =>
+                            setScheduleForm(prev => ({
+                              ...prev,
+                              startPeriod: event.target.value
+                            }))
+                          }
+                        >
+                          <option value="AM">AM</option>
+                          <option value="PM">PM</option>
+                        </select>
+                      </div>
+                    </label>
+                    <label className="form-field">
+                      <span>End Time</span>
+                      <div className="schedule-time-row">
+                        <select
+                          value={scheduleForm.endTime}
+                          onChange={event =>
+                            setScheduleForm(prev => ({
+                              ...prev,
+                              endTime: event.target.value
+                            }))
+                          }
+                        >
+                          <option value="4:30">4:30</option>
+                          <option value="5:00">5:00</option>
+                          <option value="6:00">6:00</option>
+                        </select>
+                        <select
+                          value={scheduleForm.endPeriod}
+                          onChange={event =>
+                            setScheduleForm(prev => ({
+                              ...prev,
+                              endPeriod: event.target.value
+                            }))
+                          }
+                        >
+                          <option value="AM">AM</option>
+                          <option value="PM">PM</option>
+                        </select>
+                      </div>
+                    </label>
+                  </div>
+                  <div className="schedule-days">
+                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => (
+                      <button
+                        key={day}
+                        type="button"
+                        className={`day-pill ${
+                          scheduleForm.days.includes(day) ? "active" : ""
+                        }`}
+                        onClick={() => handleToggleDay(day)}
+                      >
+                        {day}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="form-actions">
+                  <button
+                    className="btn secondary"
+                    type="button"
+                    onClick={handleCloseSchedule}
+                  >
+                    Cancel
+                  </button>
+                  <button className="btn primary" type="button">
+                    Save Schedule
+                  </button>
+                </div>
               </div>
             </div>
           </div>

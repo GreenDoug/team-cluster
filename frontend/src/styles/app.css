@@ -350,12 +350,44 @@ body {
   gap: 8px;
 }
 
+.member-header {
+  display: grid;
+  grid-template-columns: 1.2fr 1.3fr 0.6fr;
+  gap: 10px;
+  font-size: 12px;
+  color: #2563eb;
+  font-weight: 600;
+  padding: 0 6px;
+}
+
 .member-item {
-  padding: 8px 10px;
+  display: grid;
+  grid-template-columns: 1.2fr 1.3fr 0.6fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
   border-radius: 8px;
   background: #f3f4f6;
   font-size: 13px;
   color: #111827;
+}
+
+.member-name {
+  font-weight: 600;
+}
+
+.member-schedule {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.member-action {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.member-action-col {
+  text-align: right;
 }
 
 .member-actions {
@@ -374,6 +406,77 @@ body {
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 13px;
+}
+
+.schedule-modal {
+  width: min(520px, 94vw);
+}
+
+.schedule-summary {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.schedule-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.schedule-preview {
+  font-size: 13px;
+  color: #475569;
+}
+
+.schedule-card {
+  display: grid;
+  gap: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.schedule-time-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.schedule-time-row {
+  display: grid;
+  grid-template-columns: 1fr 0.6fr;
+  gap: 8px;
+}
+
+.schedule-time-row select {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.schedule-days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.day-pill {
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  background: #ffffff;
+  color: #6b7280;
+}
+
+.day-pill.active {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #ffffff;
 }
 
 @media (max-width: 900px) {
