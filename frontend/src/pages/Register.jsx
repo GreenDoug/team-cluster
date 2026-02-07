@@ -69,6 +69,7 @@ export default function Register() {
         />
 
         <select name="role" onChange={handleChange}>
+          <option value="admin">Admin</option>
           <option value="employee">User Employee</option>
           <option value="coach">Team Coach</option>
         </select>
