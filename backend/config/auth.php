@@ -24,7 +24,8 @@ if (!isset($_SESSION['user'])) {
 }
 
 function requireRole($role) {
-    if ($_SESSION['user']['role'] !== $role) {
+    $currentRole = strtolower($_SESSION['user']['role'] ?? '');
+    if ($currentRole !== strtolower($role)) {
         http_response_code(403);
         exit(json_encode(["error" => "Forbidden"]));
     }

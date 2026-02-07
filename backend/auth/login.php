@@ -32,6 +32,12 @@ if ($user && password_verify($password, $user['password'])) {
         $redirect = "/coach";
     }
 
+    $_SESSION['user'] = [
+        "id" => (int)$user["id"],
+        "fullname" => $user["fullname"],
+        "email" => $user["email"],
+        "role" => $user["role"]
+    ];
     echo json_encode([
         "success" => true,
         "role" => $user['role'],
