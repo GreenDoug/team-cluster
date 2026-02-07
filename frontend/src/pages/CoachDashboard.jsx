@@ -18,6 +18,8 @@ export default function CoachDashboard() {
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [isAddingMember, setIsAddingMember] = useState(false);
   const [scheduleMember, setScheduleMember] = useState(null);
+  const [scheduleError, setScheduleError] = useState("");
+  const [isSavingSchedule, setIsSavingSchedule] = useState(false);
   const [scheduleForm, setScheduleForm] = useState({
     startTime: "9:00",
     startPeriod: "AM",
@@ -25,6 +27,18 @@ export default function CoachDashboard() {
     endPeriod: "PM",
     days: ["Mon", "Tue", "Wed", "Thu", "Fri"]
   });
+
+  const normalizeSchedule = schedule => {
+    if (!schedule) return schedule;
+    if (typeof schedule === "string") {
+      try {
+        return JSON.parse(schedule);
+      } catch (error) {
+        return schedule;
+      }
+    }
+    return schedule;
+  };
 
   useEffect(() => {
     apiFetch("api/coach_clusters.php").then(setClusters);
@@ -44,7 +58,11 @@ export default function CoachDashboard() {
       apiFetch("api/employee_list.php")
     ])
       .then(([memberData, employeeData]) => {
-        setMembers(memberData);
+        const normalizedMembers = memberData.map(member => ({
+          ...member,
+          schedule: normalizeSchedule(member.schedule)
+        }));
+        setMembers(normalizedMembers);
         const assigned = new Set(memberData.map(member => member.id));
         setAvailableEmployees(
           employeeData.filter(employee => !assigned.has(employee.id))
@@ -127,14 +145,29 @@ export default function CoachDashboard() {
     setMemberError("");
     setEmployeeError("");
     setScheduleMember(null);
+    setScheduleError("");
   };
 
   const handleOpenSchedule = member => {
-    setScheduleMember(member);
+    const normalizedSchedule = normalizeSchedule(member?.schedule);
+    setScheduleMember({ ...member, schedule: normalizedSchedule });
+    setScheduleError("");
+    if (normalizedSchedule && typeof normalizedSchedule === "object") {
+      setScheduleForm({
+        startTime: normalizedSchedule.startTime ?? "9:00",
+        startPeriod: normalizedSchedule.startPeriod ?? "AM",
+        endTime: normalizedSchedule.endTime ?? "5:00",
+        endPeriod: normalizedSchedule.endPeriod ?? "PM",
+        days: Array.isArray(normalizedSchedule.days)
+          ? normalizedSchedule.days
+          : ["Mon", "Tue", "Wed", "Thu", "Fri"]
+      });
+    }
   };
 
   const handleCloseSchedule = () => {
     setScheduleMember(null);
+    setScheduleError("");
   };
 
   const handleToggleDay = day => {
@@ -151,10 +184,45 @@ export default function CoachDashboard() {
     if (!member?.schedule) return "Not scheduled";
     if (typeof member.schedule === "string") return member.schedule;
     if (Array.isArray(member.schedule)) return member.schedule.join(", ");
-    if (member.schedule.start && member.schedule.end) {
-      return `${member.schedule.start} - ${member.schedule.end}`;
+    if (member.schedule.startTime && member.schedule.endTime) {
+      return `${member.schedule.startTime} ${member.schedule.startPeriod} - ${member.schedule.endTime} ${member.schedule.endPeriod}`;
     }
     return "Schedule updated";
+  };
+
+  const handleSaveSchedule = async () => {
+    if (!scheduleMember || !activeCluster || isSavingSchedule) return;
+    setIsSavingSchedule(true);
+    setScheduleError("");
+
+    try {
+      const payload = {
+        cluster_id: activeCluster.id,
+        employee_id: scheduleMember.id,
+        schedule: scheduleForm
+      };
+
+      await apiFetch("api/save_schedule.php", {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+
+      setMembers(prev =>
+        prev.map(member =>
+          member.id === scheduleMember.id
+            ? { ...member, schedule: scheduleForm }
+            : member
+        )
+      );
+      setScheduleMember(prev =>
+        prev ? { ...prev, schedule: scheduleForm } : prev
+      );
+      handleCloseSchedule();
+    } catch (err) {
+      setScheduleError(err?.error ?? "Unable to save schedule.");
+    } finally {
+      setIsSavingSchedule(false);
+    }
   };
 
   const handleAddMember = async () => {
@@ -531,6 +599,7 @@ export default function CoachDashboard() {
                   </div>
                 </div>
                 <div className="form-actions">
+                  {scheduleError && <div className="error">{scheduleError}</div>}
                   <button
                     className="btn secondary"
                     type="button"
@@ -538,8 +607,13 @@ export default function CoachDashboard() {
                   >
                     Cancel
                   </button>
-                  <button className="btn primary" type="button">
-                    Save Schedule
+                  <button
+                    className="btn primary"
+                    type="button"
+                    onClick={handleSaveSchedule}
+                    disabled={isSavingSchedule}
+                  >
+                    {isSavingSchedule ? "Saving..." : "Save Schedule"}
                   </button>
                 </div>
               </div>

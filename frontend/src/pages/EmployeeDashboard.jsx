@@ -4,8 +4,26 @@ import { apiFetch } from "../api/api";
 export default function EmployeeDashboard() {
   const [data, setData] = useState([]);
 
+  const normalizeSchedule = schedule => {
+    if (!schedule) return schedule;
+    if (typeof schedule === "string") {
+      try {
+        return JSON.parse(schedule);
+      } catch (error) {
+        return schedule;
+      }
+    }
+    return schedule;
+  };
+
   useEffect(() => {
-    apiFetch("api/employee_clusters.php").then(setData);
+    apiFetch("api/employee_clusters.php").then(response => {
+      const normalized = response.map(cluster => ({
+        ...cluster,
+        schedule: normalizeSchedule(cluster.schedule)
+      }));
+      setData(normalized);
+    });
   }, []);
 
   const handleLogout = async () => {
