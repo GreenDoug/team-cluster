@@ -24,15 +24,18 @@ $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
 
 if ($user && password_verify($password, $user['password'])) {
-    $_SESSION['user'] = [
-        "id" => $user['id'],
-        "fullname" => $user['fullname'],
-        "role" => $user['role']
-    ];
+    $role = strtolower($user['role']);
+    $redirect = "/employee";
+    if ($role === "admin") {
+        $redirect = "/admin";
+    } elseif ($role === "coach") {
+        $redirect = "/coach";
+    }
 
     echo json_encode([
         "success" => true,
-        "role" => $user['role']
+        "role" => $user['role'],
+        "redirect" => $redirect
     ]);
 } else {
     http_response_code(401);

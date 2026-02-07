@@ -25,11 +25,12 @@ export default function Login() {
       if (!res.ok) throw data;
 
       const normalizedRole = String(data.role || "").toLowerCase();
-      const redirectPath = normalizedRole.includes("admin")
-        ? "/admin"
-        : normalizedRole.includes("coach")
-          ? "/coach"
-          : "/employee";
+      const redirectPath = data.redirect
+        || (normalizedRole.includes("admin")
+          ? "/admin"
+          : normalizedRole.includes("coach")
+            ? "/coach"
+            : "/employee");
 
       window.location.href = redirectPath;
     } catch (err) {
