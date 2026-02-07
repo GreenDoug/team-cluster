@@ -3,6 +3,8 @@ include "../config/database.php";
 include "../config/auth.php";
 requireRole("coach");
 
+header("Content-Type: application/json");
+
 $data = json_decode(file_get_contents("php://input"), true);
 $name = trim($data["name"] ?? "");
 $description = trim($data["description"] ?? "");
@@ -16,12 +18,12 @@ $coach_id = (int)$_SESSION["user"]["id"];
 $safe_name = $conn->real_escape_string($name);
 $safe_description = $conn->real_escape_string($description);
 
-$conn->query(
+$result = $conn->query(
     "INSERT INTO clusters (name, description, coach_id, status, created_at)
      VALUES ('$safe_name', '$safe_description', $coach_id, 'pending', NOW())"
 );
 
-if ($conn->error) {
+if ($result !== true) {
     http_response_code(500);
     exit(json_encode(["error" => "Failed to create cluster."]));
 }
@@ -35,4 +37,4 @@ echo json_encode([
     "status" => "pending",
     "members" => 0,
     "created_at" => date("Y-m-d")
-])
+]);
