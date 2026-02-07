@@ -8,6 +8,16 @@ export default function EmployeeDashboard() {
     apiFetch("api/employee_clusters.php").then(setData);
   }, []);
 
+  const handleLogout = async () => {
+    try {
+      await apiFetch("auth/logout.php", { method: "POST" });
+    } catch (error) {
+      console.error("Logout failed", error);
+    } finally {
+      window.location.href = "/login";
+    }
+  };
+
   return (
     <div className="dashboard">
       <aside className="sidebar">
@@ -26,7 +36,9 @@ export default function EmployeeDashboard() {
           <div className="nav-item">Schedule</div>
         </nav>
 
-        <div className="sidebar-footer">Log Out</div>
+        <button className="sidebar-footer" type="button" onClick={handleLogout}>
+          Log Out
+        </button>
       </aside>
 
       <main className="main">

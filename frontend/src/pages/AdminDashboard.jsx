@@ -8,6 +8,16 @@ export default function AdminDashboard() {
     apiFetch("api/admin_clusters.php").then(setClusters);
   }, []);
 
+  const handleLogout = async () => {
+    try {
+      await apiFetch("auth/logout.php", { method: "POST" });
+    } catch (error) {
+      console.error("Logout failed", error);
+    } finally {
+      window.location.href = "/login";
+    }
+  };
+
   async function updateStatus(id, status) {
     await apiFetch("api/approve_cluster.php", {
       method: "POST",
@@ -35,7 +45,9 @@ export default function AdminDashboard() {
           <div className="nav-item">Schedule</div>
         </nav>
 
-        <div className="sidebar-footer">Log Out</div>
+        <button className="sidebar-footer" type="button" onClick={handleLogout}>
+          Log Out
+        </button>
       </aside>
 
       <main className="main">

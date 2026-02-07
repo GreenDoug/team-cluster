@@ -12,6 +12,16 @@ export default function CoachDashboard() {
     apiFetch("api/coach_clusters.php").then(setClusters);
   }, []);
 
+  const handleLogout = async () => {
+    try {
+      await apiFetch("auth/logout.php", { method: "POST" });
+    } catch (error) {
+      console.error("Logout failed", error);
+    } finally {
+      window.location.href = "/login";
+    }
+  };
+
   const handleChange = event => {
     const { name, value } = event.target;
     setFormValues(prev => ({ ...prev, [name]: value }));
@@ -75,7 +85,9 @@ export default function CoachDashboard() {
           <div className="nav-item">Schedule</div>
         </nav>
 
-        <div className="sidebar-footer">Log Out</div>
+        <button className="sidebar-footer" type="button" onClick={handleLogout}>
+          Log Out
+        </button>
       </aside>
 
       <main className="main">
