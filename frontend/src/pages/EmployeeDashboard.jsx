@@ -23,7 +23,13 @@ export default function EmployeeDashboard() {
       return schedule.join(", ");
     }
     if (typeof schedule === "object") {
-      return JSON.stringify(schedule);
+      const days = Array.isArray(schedule.days) ? schedule.days : [];
+      const daysLabel = days.length > 0 ? days.join(", ") : "Days TBD";
+      const startTime = schedule.startTime ?? "9:00";
+      const startPeriod = schedule.startPeriod ?? "AM";
+      const endTime = schedule.endTime ?? "5:00";
+      const endPeriod = schedule.endPeriod ?? "PM";
+      return `${daysLabel} · ${startTime} ${startPeriod}–${endTime} ${endPeriod}`;
     }
     return schedule;
   };
