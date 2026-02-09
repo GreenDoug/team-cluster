@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../api/api";
 import useLiveDateTime from "../hooks/useLiveDateTime";
+import useCurrentUser from "../hooks/useCurrentUser";
 
 export default function AdminDashboard() {
   const [clusters, setClusters] = useState([]);
   const dateTimeLabel = useLiveDateTime();
+  const { user } = useCurrentUser();
 
   const fetchClusters = useCallback(async () => {
     try {
@@ -27,6 +29,7 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error("Logout failed", error);
     } finally {
+      localStorage.removeItem("teamClusterUser");
       window.location.href = "/login";
     }
   };
@@ -53,7 +56,7 @@ export default function AdminDashboard() {
           <div className="avatar">AD</div>
           <div>
             <div>Admin</div>
-            <div className="user-meta">Operations</div>
+            <div className="user-meta">{user?.fullname ?? "Admin"}</div>
           </div>
         </div>
 

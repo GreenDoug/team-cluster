@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../api/api";
 import useLiveDateTime from "../hooks/useLiveDateTime";
+import useCurrentUser from "../hooks/useCurrentUser";
 
 export default function EmployeeDashboard() {
   const [data, setData] = useState([]);
   const activeCluster = data[0];
   const dateTimeLabel = useLiveDateTime();
+  const { user } = useCurrentUser();
 
   const normalizeSchedule = schedule => {
     if (!schedule) return schedule;
@@ -79,6 +81,7 @@ export default function EmployeeDashboard() {
     } catch (error) {
       console.error("Logout failed", error);
     } finally {
+      localStorage.removeItem("teamClusterUser");
       window.location.href = "/login";
     }
   };
@@ -90,7 +93,7 @@ export default function EmployeeDashboard() {
           <div className="avatar">EM</div>
           <div>
             <div>Employee</div>
-            <div className="user-meta">Jane Smith</div>
+            <div className="user-meta">{user?.fullname ?? "Employee"}</div>
           </div>
         </div>
 

@@ -25,6 +25,12 @@ export default function Login() {
       if (!res.ok) throw data;
 
       const normalizedRole = String(data.role || "").toLowerCase();
+      if (data.fullname) {
+        localStorage.setItem("teamClusterUser", JSON.stringify({
+          fullname: data.fullname,
+          role: data.role
+        }));
+      }
       const redirectPath = data.redirect
         || (normalizedRole.includes("admin")
           ? "/admin"

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../api/api";
 import useLiveDateTime from "../hooks/useLiveDateTime";
+import useCurrentUser from "../hooks/useCurrentUser";
 
 export default function CoachDashboard() {
   const timeOptions = Array.from({ length: 12 * 60 }, (_, index) => {
@@ -34,6 +35,7 @@ export default function CoachDashboard() {
     days: ["Mon", "Tue", "Wed", "Thu", "Fri"]
   });
   const dateTimeLabel = useLiveDateTime();
+  const { user } = useCurrentUser();
 
   const normalizeSchedule = schedule => {
     if (!schedule) return schedule;
@@ -92,6 +94,7 @@ export default function CoachDashboard() {
     } catch (error) {
       console.error("Logout failed", error);
     } finally {
+      localStorage.removeItem("teamClusterUser");
       window.location.href = "/login";
     }
   };
@@ -272,7 +275,7 @@ export default function CoachDashboard() {
           <div className="avatar">TC</div>
           <div>
             <div>Team Coach</div>
-            <div className="user-meta">John Doe</div>
+            <div className="user-meta">{user?.fullname ?? "Team Coach"}</div>
           </div>
         </div>
 

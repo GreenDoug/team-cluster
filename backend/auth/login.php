@@ -41,7 +41,8 @@ if ($user && password_verify($password, $user['password'])) {
     echo json_encode([
         "success" => true,
         "role" => $user['role'],
-        "redirect" => $redirect
+        "redirect" => $redirect,
+        "fullname" => $user["fullname"]
     ]);
 } else {
     http_response_code(401);
