@@ -36,6 +36,21 @@ export default function EmployeeDashboard() {
     return schedule;
   };
 
+  const getActiveDays = schedule => {
+    if (!schedule) return [];
+    if (Array.isArray(schedule)) {
+      return schedule.map(day => day.slice(0, 3));
+    }
+    if (typeof schedule === "object") {
+      const days = Array.isArray(schedule.days) ? schedule.days : [];
+      return days.map(day => day.slice(0, 3));
+    }
+    return [];
+  };
+
+  const scheduleDays = getActiveDays(activeCluster?.schedule);
+  const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
   useEffect(() => {
     apiFetch("api/employee_clusters.php").then(response => {
       const normalized = response.map(cluster => ({
@@ -83,60 +98,67 @@ export default function EmployeeDashboard() {
         <header className="topbar">
           <div>
             <h2>TEAM</h2>
-            <div className="section-title">Employee Dashboard</div>
+            <div className="section-title">My team cluster overview</div>
           </div>
           <span className="datetime">{dateTimeLabel}</span>
         </header>
 
-        <section className="content">
-          <div className="section-title">Your team cluster and schedules</div>
-
-          <div className="overview-grid">
-            <div className="overview-card">
-              <div className="overview-label">Active cluster</div>
-              <div className="overview-value">
-                {activeCluster?.cluster_name ?? "Not assigned"}
-              </div>
-              <div className="overview-caption">
-                {data.length} total cluster{data.length === 1 ? "" : "s"}
-              </div>
-            </div>
-            <div className="overview-card">
-              <div className="overview-label">Team coach</div>
-              <div className="overview-value">
-                {activeCluster?.coach_name ?? "Pending"}
-              </div>
-              <div className="overview-caption">Reach out for schedule changes.</div>
-            </div>
-            <div className="overview-card">
-              <div className="overview-label">Upcoming schedule</div>
-              <div className="overview-value">
-                {formatSchedule(activeCluster?.schedule)}
-              </div>
-              <div className="overview-caption">Latest shift assignment.</div>
-            </div>
-          </div>
+        <section className="content content-muted">
 
           {data.length === 0 && (
-            <div className="empty-state">No cluster details available.</div>
+            <div className="empty-state">No team cluster details available.</div>
           )}
 
-          {data.map((c, i) => (
-            <div key={i} className="card card-employee">
-              <div className="card-details">
-                <div className="card-meta">Team Cluster</div>
-                <div className="card-title">{c.cluster_name}</div>
-                <div className="card-subtitle">Coach: {c.coach_name}</div>
-                <div className="card-subtitle">
-                  Schedule: {formatSchedule(c.schedule)}
+          {data.length > 0 && (
+            <div className="employee-panel">
+              <div className="employee-card">
+                <div className="employee-card-header">
+                  <div className="employee-card-title">My Team Cluster Details</div>
+                </div>
+                <div className="employee-card-body">
+                  <div className="employee-field">
+                    <div className="employee-field-label">Cluster Name</div>
+                    <div className="employee-field-value">
+                      {activeCluster?.cluster_name ?? "Not assigned"}
+                    </div>
+                  </div>
+                  <div className="employee-field">
+                    <div className="employee-field-label">Team Coach</div>
+                    <div className="employee-field-value">
+                      {activeCluster?.coach_name ?? "Pending"}
+                    </div>
+                  </div>
+                </div>
+                <div className="employee-card-footer">
+                  <button className="btn link" type="button">
+                    View
+                  </button>
                 </div>
               </div>
-              <div className="card-actions">
-                <button className="btn secondary">View Team Cluster</button>
-                <button className="btn">View Schedule</button>
+              <div className="employee-card">
+                <div className="employee-card-header">
+                  <div className="employee-card-title">My Schedule</div>
+                </div>
+                <div className="employee-card-body">
+                  <div className="schedule-week">
+                    {dayLabels.map(day => (
+                      <div
+                        key={day}
+                        className={`schedule-day${
+                          scheduleDays.includes(day) ? " active" : ""
+                        }`}
+                      >
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="employee-schedule-caption">
+                    {formatSchedule(activeCluster?.schedule)}
+                  </div>
+                </div>
               </div>
             </div>
-          ))}
+          )}
         </section>
       </main>
     </div>
