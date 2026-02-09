@@ -68,8 +68,8 @@ export default function EmployeeDashboard() {
         </div>
 
         <nav className="nav">
-          <div className="nav-item active">Dashboard</div>
-          <div className="nav-item">Team</div>
+          <div className="nav-item">Dashboard</div>
+          <div className="nav-item active">Team</div>
           <div className="nav-item">Attendance</div>
           <div className="nav-item">Schedule</div>
         </nav>
