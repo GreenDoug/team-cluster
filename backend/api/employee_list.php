@@ -4,10 +4,13 @@ include "../config/auth.php";
 requireRole("coach");
 
 $res = $conn->query(
-    "SELECT id, fullname
+    "SELECT users.id, users.fullname
      FROM users
-     WHERE role='employee'
-     ORDER BY fullname ASC"
+     LEFT JOIN cluster_members
+       ON users.id = cluster_members.employee_id
+     WHERE users.role='employee'
+       AND cluster_members.employee_id IS NULL
+     ORDER BY users.fullname ASC"
 );
 
 $employees = [];

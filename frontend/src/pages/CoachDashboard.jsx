@@ -200,6 +200,21 @@ export default function CoachDashboard() {
     return "Schedule updated";
   };
 
+  const renderScheduleDays = member => {
+    if (!member?.schedule) return "Not scheduled";
+    const normalizedSchedule = normalizeSchedule(member.schedule);
+    if (Array.isArray(normalizedSchedule)) return normalizedSchedule.join(", ");
+    if (
+      normalizedSchedule &&
+      typeof normalizedSchedule === "object" &&
+      Array.isArray(normalizedSchedule.days) &&
+      normalizedSchedule.days.length > 0
+    ) {
+      return normalizedSchedule.days.join(", ");
+    }
+    return "Not scheduled";
+  };
+
   const handleSaveSchedule = async () => {
     if (!scheduleMember || !activeCluster || isSavingSchedule) return;
     setIsSavingSchedule(true);
@@ -429,6 +444,7 @@ export default function CoachDashboard() {
                       <div className="member-header">
                         <span>Members</span>
                         <span>Current Schedule</span>
+                        <span>Assigned Days</span>
                         <span className="member-action-col">Action</span>
                       </div>
                     )}
@@ -437,6 +453,9 @@ export default function CoachDashboard() {
                         <div className="member-name">{member.fullname}</div>
                         <div className="member-schedule">
                           {renderSchedulePreview(member)}
+                        </div>
+                        <div className="member-days">
+                          {renderScheduleDays(member)}
                         </div>
                         <div className="member-action">
                           <button
