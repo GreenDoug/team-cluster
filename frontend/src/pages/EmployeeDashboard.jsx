@@ -3,6 +3,7 @@ import { apiFetch } from "../api/api";
 
 export default function EmployeeDashboard() {
   const [data, setData] = useState([]);
+  const activeCluster = data[0];
 
   const normalizeSchedule = schedule => {
     if (!schedule) return schedule;
@@ -12,6 +13,17 @@ export default function EmployeeDashboard() {
       } catch (error) {
         return schedule;
       }
+    }
+    return schedule;
+  };
+
+  const formatSchedule = schedule => {
+    if (!schedule) return "Not assigned";
+    if (Array.isArray(schedule)) {
+      return schedule.join(", ");
+    }
+    if (typeof schedule === "object") {
+      return JSON.stringify(schedule);
     }
     return schedule;
   };
@@ -71,18 +83,45 @@ export default function EmployeeDashboard() {
         <section className="content">
           <div className="section-title">Your team cluster and schedules</div>
 
+          <div className="overview-grid">
+            <div className="overview-card">
+              <div className="overview-label">Active cluster</div>
+              <div className="overview-value">
+                {activeCluster?.cluster_name ?? "Not assigned"}
+              </div>
+              <div className="overview-caption">
+                {data.length} total cluster{data.length === 1 ? "" : "s"}
+              </div>
+            </div>
+            <div className="overview-card">
+              <div className="overview-label">Team coach</div>
+              <div className="overview-value">
+                {activeCluster?.coach_name ?? "Pending"}
+              </div>
+              <div className="overview-caption">Reach out for schedule changes.</div>
+            </div>
+            <div className="overview-card">
+              <div className="overview-label">Upcoming schedule</div>
+              <div className="overview-value">
+                {formatSchedule(activeCluster?.schedule)}
+              </div>
+              <div className="overview-caption">Latest shift assignment.</div>
+            </div>
+          </div>
+
           {data.length === 0 && (
             <div className="empty-state">No cluster details available.</div>
           )}
 
           {data.map((c, i) => (
-            <div key={i} className="card">
+            <div key={i} className="card card-employee">
               <div className="card-details">
-                <strong>{c.cluster_name}</strong>
-                <span>Coach: {c.coach_name}</span>
-                <span>
-                  Schedule: {c.schedule ? JSON.stringify(c.schedule) : "Not assigned"}
-                </span>
+                <div className="card-meta">Team Cluster</div>
+                <div className="card-title">{c.cluster_name}</div>
+                <div className="card-subtitle">Coach: {c.coach_name}</div>
+                <div className="card-subtitle">
+                  Schedule: {formatSchedule(c.schedule)}
+                </div>
               </div>
               <div className="card-actions">
                 <button className="btn secondary">View Team Cluster</button>
