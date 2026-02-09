@@ -628,10 +628,34 @@ body {
 }
 
 .schedule-time-row select {
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 8px 10px;
+   appearance: none;
+  border: 1px solid #cbd5f5;
+  border-radius: 10px;
+  padding: 9px 34px 9px 12px;
   font-size: 13px;
+  font-weight: 500;
+  color: #0f172a;
+  background-color: #ffffff;
+  background-image: linear-gradient(45deg, transparent 50%, #64748b 50%),
+    linear-gradient(135deg, #64748b 50%, transparent 50%),
+    linear-gradient(to right, #e2e8f0, #e2e8f0);
+  background-position: calc(100% - 18px) calc(50% - 3px),
+    calc(100% - 13px) calc(50% - 3px),
+    calc(100% - 34px) 50%;
+  background-size: 6px 6px, 6px 6px, 1px 18px;
+  background-repeat: no-repeat;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.schedule-time-row select:hover {
+  border-color: #94a3b8;
+}
+
+.schedule-time-row select:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
 .schedule-days {
