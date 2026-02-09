@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../api/api";
+import useLiveDateTime from "../hooks/useLiveDateTime";
 
 export default function CoachDashboard() {
   const timeOptions = Array.from({ length: 12 * 60 }, (_, index) => {
@@ -32,6 +33,7 @@ export default function CoachDashboard() {
     endPeriod: "PM",
     days: ["Mon", "Tue", "Wed", "Thu", "Fri"]
   });
+  const dateTimeLabel = useLiveDateTime();
 
   const normalizeSchedule = schedule => {
     if (!schedule) return schedule;
@@ -293,7 +295,7 @@ export default function CoachDashboard() {
             <div className="section-title">Team Coach Dashboard</div>
           </div>
           <div className="toolbar">
-            <span className="datetime">0:00 PM · Wed, January 22, 2026</span>
+            <span className="datetime">{dateTimeLabel}</span>
             <button
               className="btn primary"
               type="button"

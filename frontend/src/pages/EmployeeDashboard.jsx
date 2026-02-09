@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../api/api";
+import useLiveDateTime from "../hooks/useLiveDateTime";
 
 export default function EmployeeDashboard() {
   const [data, setData] = useState([]);
   const activeCluster = data[0];
+  const dateTimeLabel = useLiveDateTime();
 
   const normalizeSchedule = schedule => {
     if (!schedule) return schedule;
@@ -83,7 +85,7 @@ export default function EmployeeDashboard() {
             <h2>TEAM</h2>
             <div className="section-title">Employee Dashboard</div>
           </div>
-          <span className="datetime">0:00 PM · Wed, January 22, 2026</span>
+          <span className="datetime">{dateTimeLabel}</span>
         </header>
 
         <section className="content">

@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiFetch } from "../api/api";
+import useLiveDateTime from "../hooks/useLiveDateTime";
 
 export default function AdminDashboard() {
   const [clusters, setClusters] = useState([]);
+  const dateTimeLabel = useLiveDateTime();
 
   const fetchClusters = useCallback(async () => {
     try {
@@ -73,7 +75,7 @@ export default function AdminDashboard() {
             <h2>TEAM</h2>
             <div className="section-title">Admin Dashboard</div>
           </div>
-          <span className="datetime">0:00 PM · Wed, January 22, 2026</span>
+          <span className="datetime">{dateTimeLabel}</span>
         </header>
 
         <section className="content">
