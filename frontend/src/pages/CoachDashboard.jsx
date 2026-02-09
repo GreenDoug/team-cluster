@@ -27,6 +27,7 @@ export default function CoachDashboard() {
   const [scheduleMember, setScheduleMember] = useState(null);
   const [scheduleError, setScheduleError] = useState("");
   const [isSavingSchedule, setIsSavingSchedule] = useState(false);
+  const [isDeletingMember, setIsDeletingMember] = useState(false);
   const [scheduleForm, setScheduleForm] = useState({
     startTime: "9:00",
     startPeriod: "AM",
@@ -283,6 +284,40 @@ export default function CoachDashboard() {
     }
   };
 
+  const handleDeleteMember = async member => {
+    if (!member || !activeCluster || isDeletingMember) return;
+    const confirmed = window.confirm(
+      `Remove ${member.fullname} from ${activeCluster.name}?`
+    );
+    if (!confirmed) return;
+    setIsDeletingMember(true);
+    setMemberError("");
+
+    try {
+      await apiFetch("api/delete_member.php", {
+        method: "POST",
+        body: JSON.stringify({
+          cluster_id: activeCluster.id,
+          employee_id: member.id
+        })
+      });
+
+      setMembers(prev => prev.filter(item => item.id !== member.id));
+      setAvailableEmployees(prev => [...prev, { id: member.id, fullname: member.fullname }]);
+      setClusters(prev =>
+        prev.map(cluster =>
+          cluster.id === activeCluster.id
+            ? { ...cluster, members: Math.max((cluster.members ?? 1) - 1, 0) }
+            : cluster
+        )
+      );
+    } catch (err) {
+      setMemberError(err?.error ?? "Unable to remove member.");
+    } finally {
+      setIsDeletingMember(false);
+    }
+  };
+
   return (
     <div className="dashboard">
       <aside className="sidebar">
@@ -445,6 +480,7 @@ export default function CoachDashboard() {
                         <span>Members</span>
                         <span>Current Schedule</span>
                         <span>Assigned Days</span>
+                        <span className="member-action-col">Actions</span>
                         <span className="member-action-col">Action</span>
                       </div>
                     )}
@@ -464,6 +500,14 @@ export default function CoachDashboard() {
                             onClick={() => handleOpenSchedule(member)}
                           >
                             Schedule
+                          </button>
+                          <button
+                            className="btn danger"
+                            type="button"
+                            onClick={() => handleDeleteMember(member)}
+                            disabled={isDeletingMember}
+                          >
+                            Delete
                           </button>
                         </div>
                       </div>

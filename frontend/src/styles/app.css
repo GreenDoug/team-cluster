@@ -142,6 +142,12 @@ body {
   background: #f3f4f6;
 }
 
+.btn.danger {
+  border-color: #fecaca;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -560,6 +566,7 @@ body {
 .member-action {
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
 }
 
 .member-action-col {
