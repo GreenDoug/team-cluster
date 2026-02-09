@@ -39,34 +39,68 @@ export default function Login() {
   }
 
   return (
-    <div className="container">
-      <form className="card" onSubmit={handleSubmit}>
-        <h2>Login</h2>
+    <div className="auth-page">
+      <div className="auth-shell">
+        <div className="auth-panel">
+          <span className="auth-pill">Team Cluster</span>
+          <h1>Welcome back</h1>
+          <p>
+            Track teams, coaches, and employees in one secure workspace. Sign in
+            to continue managing your cluster dashboard.
+          </p>
+          <div className="auth-highlights">
+            <div>
+              <strong>Centralized access</strong>
+              <span>Keep schedules, roles, and updates in sync.</span>
+            </div>
+            <div>
+              <strong>Live reporting</strong>
+              <span>Monitor team activity as it happens.</span>
+            </div>
+          </div>
+        </div>
+        <form className="auth-card" onSubmit={handleSubmit}>
+          <div>
+            <h2 className="auth-heading">Sign in</h2>
+            <p className="auth-subtitle">
+              Use your registered email and password.
+            </p>
+          </div>
 
-        {error && <p className="error">{error}</p>}
+        {error && <p className="auth-error">{error}</p>}
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          required
-        />
+         <label className="auth-field">
+            Email address
+            <input
+              className="auth-input"
+              type="email"
+              placeholder="you@company.com"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              required
+            />
+          </label>
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          required
-        />
+        <label className="auth-field">
+            Password
+            <input
+              className="auth-input"
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+          </label>
+        <button type="submit" className="btn primary auth-submit">
+            Login
+          </button>
 
-        <button type="submit" className="btn">Login</button>
-
-        <p>
-          No account? <a href="/register">Register</a>
-        </p>
-      </form>
+        <p className="auth-footer">
+            No account? <a href="/register">Register</a>
+          </p>
+        </form>
+      </div>
     </div>
   );
 }
