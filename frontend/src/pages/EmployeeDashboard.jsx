@@ -36,6 +36,17 @@ export default function EmployeeDashboard() {
     return schedule;
   };
 
+  const formatScheduleTime = schedule => {
+    if (!schedule || typeof schedule !== "object" || Array.isArray(schedule)) {
+      return "Time TBD";
+    }
+    const startTime = schedule.startTime ?? "9:00";
+    const startPeriod = schedule.startPeriod ?? "AM";
+    const endTime = schedule.endTime ?? "5:00";
+    const endPeriod = schedule.endPeriod ?? "PM";
+    return `${startTime} ${startPeriod}–${endTime} ${endPeriod}`;
+  };
+
   const getActiveDays = schedule => {
     if (!schedule) return [];
     if (Array.isArray(schedule)) {
@@ -50,6 +61,7 @@ export default function EmployeeDashboard() {
 
   const scheduleDays = getActiveDays(activeCluster?.schedule);
   const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const scheduleTimeLabel = formatScheduleTime(activeCluster?.schedule);
 
   useEffect(() => {
     apiFetch("api/employee_clusters.php").then(response => {
@@ -152,8 +164,18 @@ export default function EmployeeDashboard() {
                       </div>
                     ))}
                   </div>
-                  <div className="employee-schedule-caption">
-                    {formatSchedule(activeCluster?.schedule)}
+                   <div className="schedule-times">
+                    {dayLabels.map(day => {
+                      const isActive = scheduleDays.includes(day);
+                      return (
+                        <div
+                          key={`${day}-time`}
+                          className={`schedule-time${isActive ? " active" : ""}`}
+                        >
+                          {isActive ? scheduleTimeLabel : "—"}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
