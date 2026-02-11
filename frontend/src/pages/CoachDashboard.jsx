@@ -337,38 +337,6 @@ useEffect(() => {
     }));
   };
 
-  const getOrganizedAssignedDays = member => {
-    const normalizedSchedule = normalizeSchedule(member?.schedule);
-
-    if (Array.isArray(normalizedSchedule) && normalizedSchedule.length > 0) {
-      return normalizedSchedule
-        .filter(day => dayOptions.includes(day))
-        .sort((a, b) => dayOptions.indexOf(a) - dayOptions.indexOf(b))
-        .map(day => ({ day, timeRange: "Schedule set" }));
-    }
-
-    if (
-      normalizedSchedule &&
-      typeof normalizedSchedule === "object" &&
-      !Array.isArray(normalizedSchedule) &&
-      Array.isArray(normalizedSchedule.days) &&
-      normalizedSchedule.days.length > 0
-    ) {
-      return normalizedSchedule.days
-      .filter(day => dayOptions.includes(day))
-        .sort((a, b) => dayOptions.indexOf(a) - dayOptions.indexOf(b))
-        .map(day => {
-          const daySchedule = normalizedSchedule.daySchedules?.[day];
-          return {
-            day,
-            timeRange: daySchedule ? formatTimeRange(daySchedule) : "Schedule set"
-          };
-        });
-    }
-    
-    return [];
-  };
-
   const getScheduleSummary = member => {
     const normalizedSchedule = normalizeSchedule(member?.schedule);
     if (!normalizedSchedule || Array.isArray(normalizedSchedule)) {
@@ -408,6 +376,30 @@ useEffect(() => {
     }
 
     return [];
+  };
+
+  const formatActiveMemberDayTime = (member, day) => {
+    const normalizedSchedule = normalizeSchedule(member?.schedule);
+
+    if (
+      normalizedSchedule &&
+      typeof normalizedSchedule === "object" &&
+      !Array.isArray(normalizedSchedule)
+    ) {
+      const isAssigned = Array.isArray(normalizedSchedule.days)
+        ? normalizedSchedule.days.includes(day)
+        : false;
+      if (!isAssigned) return "—";
+
+      const daySchedule = normalizedSchedule.daySchedules?.[day];
+      return daySchedule ? formatTimeRange(daySchedule) : "Schedule set";
+    }
+
+    if (Array.isArray(normalizedSchedule)) {
+      return normalizedSchedule.includes(day) ? "Schedule set" : "—";
+    }
+
+    return "—";
   };
 
   const handleSaveSchedule = async () => {
@@ -675,29 +667,42 @@ useEffect(() => {
                 <div className="member-list member-list-dashboard">
                   <div className="member-header">
                     <span>Members</span>
-                    <span>Assigned Days</span>
-                    <span />
+                    <span>Schedule</span>
                   </div>
                   {activeMembers.map(member => {
-                    const organizedDays = getOrganizedAssignedDays(member);
+                    const assignedDays = getAssignedDays(member);
                     return (
                       <div key={member.id} className="member-item">
                         <div className="member-name">{member.fullname}</div>
                         <div className="member-days">
-                          {organizedDays.length > 0 ? (
-                            <div className="assigned-day-list">
-                              {organizedDays.map(({ day, timeRange }) => (
-                                <div key={`${member.id}-${day}`} className="assigned-day-row">
-                                  <span className="assigned-day-name">{day}</span>
-                                  <span className="assigned-day-time">{timeRange}</span>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            "Not scheduled"
+                          <div className="schedule-week">
+                            {dayOptions.map(day => (
+                              <div
+                                key={`${member.id}-${day}-label`}
+                                className={`schedule-day${
+                                  assignedDays.includes(day) ? " active" : ""
+                                }`}
+                              >
+                                {day}
+                              </div>
+                            ))}
+                          </div>
+                          <div className="schedule-times">
+                            {dayOptions.map(day => (
+                              <div
+                                key={`${member.id}-${day}-time`}
+                                className={`schedule-time${
+                                  assignedDays.includes(day) ? " active" : ""
+                                }`}
+                              >
+                                {formatActiveMemberDayTime(member, day)}
+                              </div>
+                            ))}
+                          </div>
+                          {assignedDays.length === 0 && (
+                            <div className="member-days-empty">Not scheduled</div>
                           )}
                         </div>
-                        <div />
                       </div>
                     );
                   })}

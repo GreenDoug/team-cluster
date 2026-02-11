@@ -583,26 +583,49 @@ body {
   font-size: 13px;
 }
 
-.member-list-dashboard .assigned-day-list {
+.member-list-dashboard .member-header {
+  grid-template-columns: minmax(150px, 0.7fr) minmax(0, 1.8fr);
+}
+
+.member-list-dashboard .member-item {
+  grid-template-columns: minmax(150px, 0.7fr) minmax(0, 1.8fr);
+  align-items: start;
+}
+
+.member-list-dashboard .member-days {
   display: grid;
   gap: 8px;
 }
 
-.member-list-dashboard .assigned-day-row {
-  display: grid;
-  grid-template-columns: 52px minmax(0, 1fr);
-  align-items: start;
-  gap: 10px;
+.member-list-dashboard .schedule-week {
+  background: #f1f5f9;
+  border-radius: 10px;
+  padding: 10px;
+  border: 1px solid #d9e1ef;
 }
 
-.member-list-dashboard .assigned-day-name {
-  font-weight: 700;
-  color: #1d4ed8;
+.member-list-dashboard .schedule-times {
+  margin-top: 0;
 }
 
-.member-list-dashboard .assigned-day-time {
-  color: #475569;
-  line-height: 1.4;
+.member-list-dashboard .schedule-day,
+.member-list-dashboard .schedule-time {
+  border-radius: 8px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+}
+
+.member-list-dashboard .schedule-time {
+  font-size: 12px;
+}
+
+.member-list-dashboard .member-days-empty {
+  font-size: 12px;
+  color: #64748b;
 }
 
 .member-day-chips {
@@ -695,9 +718,9 @@ body {
     grid-column: 1 / -1;
   }
 
-  .member-list-dashboard .assigned-day-row {
-    grid-template-columns: 46px minmax(0, 1fr);
-    gap: 8px;
+  .member-list-dashboard .member-header,
+  .member-list-dashboard .member-item {
+    grid-template-columns: 1fr;
   }
 
   .member-item .member-action {
