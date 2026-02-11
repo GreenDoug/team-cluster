@@ -14,26 +14,9 @@ export default function EmployeeDashboard() {
     if (typeof schedule === "string") {
       try {
         return JSON.parse(schedule);
-      } catch (error) {
+      } catch {
         return schedule;
       }
-    }
-    return schedule;
-  };
-
-  const formatSchedule = schedule => {
-    if (!schedule) return "Not assigned";
-    if (Array.isArray(schedule)) {
-      return schedule.join(", ");
-    }
-    if (typeof schedule === "object") {
-      const days = Array.isArray(schedule.days) ? schedule.days : [];
-      const daysLabel = days.length > 0 ? days.join(", ") : "Days TBD";
-      const startTime = schedule.startTime ?? "9:00";
-      const startPeriod = schedule.startPeriod ?? "AM";
-      const endTime = schedule.endTime ?? "5:00";
-      const endPeriod = schedule.endPeriod ?? "PM";
-      return `${daysLabel} · ${startTime} ${startPeriod}–${endTime} ${endPeriod}`;
     }
     return schedule;
   };
@@ -47,6 +30,22 @@ export default function EmployeeDashboard() {
     const endTime = schedule.endTime ?? "5:00";
     const endPeriod = schedule.endPeriod ?? "PM";
     return `${startTime} ${startPeriod}–${endTime} ${endPeriod}`;
+  };
+
+  const formatDayScheduleTime = (schedule, day) => {
+    if (!schedule || typeof schedule !== "object" || Array.isArray(schedule)) {
+      return "—";
+    }
+
+    const activeDays = Array.isArray(schedule.days) ? schedule.days : [];
+    if (!activeDays.includes(day)) return "—";
+
+    const daySchedule = schedule.daySchedules?.[day];
+    if (daySchedule && typeof daySchedule === "object") {
+      return formatScheduleTime(daySchedule);
+    }
+
+    return formatScheduleTime(schedule);
   };
 
   const getActiveDays = schedule => {
@@ -63,7 +62,6 @@ export default function EmployeeDashboard() {
 
   const scheduleDays = getActiveDays(activeCluster?.schedule);
   const dayLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const scheduleTimeLabel = formatScheduleTime(activeCluster?.schedule);
 
   useEffect(() => {
     apiFetch("api/employee_clusters.php").then(response => {
@@ -175,7 +173,9 @@ export default function EmployeeDashboard() {
                           key={`${day}-time`}
                           className={`schedule-time${isActive ? " active" : ""}`}
                         >
-                          {isActive ? scheduleTimeLabel : "—"}
+                          {isActive
+                            ? formatDayScheduleTime(activeCluster?.schedule, day)
+                            : "—"}
                         </div>
                       );
                     })}

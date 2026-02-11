@@ -30,7 +30,7 @@ export default function useCurrentUser() {
           STORAGE_KEY,
           JSON.stringify({ fullname: response.fullname, role: response.role })
         );
-      } catch (error) {
+      } catch {
         if (!isActive) return;
         setUser(null);
       } finally {

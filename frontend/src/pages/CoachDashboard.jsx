@@ -4,6 +4,13 @@ import useLiveDateTime from "../hooks/useLiveDateTime";
 import useCurrentUser from "../hooks/useCurrentUser";
 
 export default function CoachDashboard() {
+  const dayOptions = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const defaultDaySchedule = {
+    startTime: "9:00",
+    startPeriod: "AM",
+    endTime: "5:00",
+    endPeriod: "PM"
+  };
   const timeOptions = Array.from({ length: 12 * 60 }, (_, index) => {
     const hour = Math.floor(index / 60) + 1;
     const minute = index % 60;
@@ -33,11 +40,14 @@ export default function CoachDashboard() {
   const [activeMembersLoading, setActiveMembersLoading] = useState(false);
   const [activeMembersError, setActiveMembersError] = useState("");
   const [scheduleForm, setScheduleForm] = useState({
-    startTime: "9:00",
-    startPeriod: "AM",
-    endTime: "5:00",
-    endPeriod: "PM",
-    days: ["Mon", "Tue", "Wed", "Thu", "Fri"]
+    days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    daySchedules: {
+      Mon: { ...defaultDaySchedule },
+      Tue: { ...defaultDaySchedule },
+      Wed: { ...defaultDaySchedule },
+      Thu: { ...defaultDaySchedule },
+      Fri: { ...defaultDaySchedule }
+    }
   });
   const dateTimeLabel = useLiveDateTime();
   const { user } = useCurrentUser();
@@ -52,6 +62,72 @@ export default function CoachDashboard() {
       }
     }
     return schedule;
+  };
+
+  const createDaySchedules = (days = [], baseSchedule = {}) => {
+    const daySchedules = {};
+    dayOptions.forEach(day => {
+      daySchedules[day] = {
+        startTime: baseSchedule.startTime ?? "9:00",
+        startPeriod: baseSchedule.startPeriod ?? "AM",
+        endTime: baseSchedule.endTime ?? "5:00",
+        endPeriod: baseSchedule.endPeriod ?? "PM"
+      };
+    });
+
+    if (baseSchedule && typeof baseSchedule === "object") {
+      const source =
+        baseSchedule.daySchedules && typeof baseSchedule.daySchedules === "object"
+          ? baseSchedule.daySchedules
+          : {};
+
+      Object.entries(source).forEach(([day, value]) => {
+        if (!dayOptions.includes(day) || !value || typeof value !== "object") return;
+        daySchedules[day] = {
+          startTime: value.startTime ?? daySchedules[day].startTime,
+          startPeriod: value.startPeriod ?? daySchedules[day].startPeriod,
+          endTime: value.endTime ?? daySchedules[day].endTime,
+          endPeriod: value.endPeriod ?? daySchedules[day].endPeriod
+        };
+      });
+    }
+
+    days.forEach(day => {
+      if (!dayOptions.includes(day)) return;
+      if (!daySchedules[day]) {
+        daySchedules[day] = { ...defaultDaySchedule };
+      }
+    });
+
+    return daySchedules;
+  };
+
+  const buildScheduleForm = schedule => {
+    if (!schedule || typeof schedule !== "object" || Array.isArray(schedule)) {
+      const defaultDays = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+      return {
+        days: defaultDays,
+        daySchedules: createDaySchedules(defaultDays)
+      };
+    }
+
+    const days = Array.isArray(schedule.days)
+      ? schedule.days.filter(day => dayOptions.includes(day))
+      : ["Mon", "Tue", "Wed", "Thu", "Fri"];
+
+    return {
+      days,
+      daySchedules: createDaySchedules(days, schedule)
+    };
+  };
+
+  const formatTimeRange = schedule => {
+    if (!schedule || typeof schedule !== "object") return "";
+    const startTime = schedule.startTime ?? "9:00";
+    const startPeriod = schedule.startPeriod ?? "AM";
+    const endTime = schedule.endTime ?? "5:00";
+    const endPeriod = schedule.endPeriod ?? "PM";
+    return `${startTime} ${startPeriod} - ${endTime} ${endPeriod}`;
   };
 
   useEffect(() => {
@@ -226,17 +302,7 @@ useEffect(() => {
     const normalizedSchedule = normalizeSchedule(member?.schedule);
     setScheduleMember({ ...member, schedule: normalizedSchedule });
     setScheduleError("");
-    if (normalizedSchedule && typeof normalizedSchedule === "object") {
-      setScheduleForm({
-        startTime: normalizedSchedule.startTime ?? "9:00",
-        startPeriod: normalizedSchedule.startPeriod ?? "AM",
-        endTime: normalizedSchedule.endTime ?? "5:00",
-        endPeriod: normalizedSchedule.endPeriod ?? "PM",
-        days: Array.isArray(normalizedSchedule.days)
-          ? normalizedSchedule.days
-          : ["Mon", "Tue", "Wed", "Thu", "Fri"]
-      });
-    }
+    setScheduleForm(buildScheduleForm(normalizedSchedule));
   };
 
   const handleCloseSchedule = () => {
@@ -249,18 +315,48 @@ useEffect(() => {
       const hasDay = prev.days.includes(day);
       return {
         ...prev,
-        days: hasDay ? prev.days.filter(item => item !== day) : [...prev.days, day]
+         days: hasDay ? prev.days.filter(item => item !== day) : [...prev.days, day],
+        daySchedules: {
+          ...prev.daySchedules,
+          [day]: prev.daySchedules?.[day] ?? { ...defaultDaySchedule }
+        }
       };
     });
+  };
+
+  const handleChangeDayTime = (day, field, value) => {
+    setScheduleForm(prev => ({
+      ...prev,
+      daySchedules: {
+        ...prev.daySchedules,
+        [day]: {
+          ...(prev.daySchedules?.[day] ?? { ...defaultDaySchedule }),
+          [field]: value
+        }
+      }
+    }));
   };
 
   const renderSchedulePreview = member => {
     if (!member?.schedule) return "Not scheduled";
     if (typeof member.schedule === "string") return member.schedule;
     if (Array.isArray(member.schedule)) return member.schedule.join(", ");
-    if (member.schedule.startTime && member.schedule.endTime) {
-      return `${member.schedule.startTime} ${member.schedule.startPeriod} - ${member.schedule.endTime} ${member.schedule.endPeriod}`;
+    const normalizedSchedule = normalizeSchedule(member.schedule);
+    if (!normalizedSchedule || typeof normalizedSchedule !== "object") {
+      return "Schedule updated";
     }
+
+    if (normalizedSchedule.daySchedules && Array.isArray(normalizedSchedule.days)) {
+      const firstDay = normalizedSchedule.days.find(day => normalizedSchedule.daySchedules[day]);
+      if (firstDay) {
+        return `${firstDay}: ${formatTimeRange(normalizedSchedule.daySchedules[firstDay])}`;
+      }
+    }
+
+    if (normalizedSchedule.startTime && normalizedSchedule.endTime) {
+      return formatTimeRange(normalizedSchedule);
+    }
+
     return "Schedule updated";
   };
 
@@ -274,7 +370,12 @@ useEffect(() => {
       Array.isArray(normalizedSchedule.days) &&
       normalizedSchedule.days.length > 0
     ) {
-      return normalizedSchedule.days.join(", ");
+      return normalizedSchedule.days
+        .map(day => {
+          const daySchedule = normalizedSchedule.daySchedules?.[day];
+          return daySchedule ? `${day} (${formatTimeRange(daySchedule)})` : day;
+        })
+        .join(", ");
     }
     return "Not scheduled";
   };
@@ -713,85 +814,72 @@ useEffect(() => {
                 </div>
                 <div className="schedule-card">
                   <div className="schedule-label">Schedule Details</div>
-                  <div className="schedule-time-grid">
-                    <label className="form-field">
-                      <span>Start Time</span>
-                      <div className="schedule-time-row">
-                        <select
-                          value={scheduleForm.startTime}
-                          onChange={event =>
-                            setScheduleForm(prev => ({
-                              ...prev,
-                              startTime: event.target.value
-                            }))
-                          }
-                        >
-                          {timeOptions.map(time => (
-                            <option key={`start-${time}`} value={time}>
-                              {time}
-                            </option>
-                          ))}
-                        </select>
-                        <select
-                          value={scheduleForm.startPeriod}
-                          onChange={event =>
-                            setScheduleForm(prev => ({
-                              ...prev,
-                              startPeriod: event.target.value
-                            }))
-                          }
-                        >
-                          <option value="AM">AM</option>
-                          <option value="PM">PM</option>
-                        </select>
-                      </div>
-                    </label>
-                    <label className="form-field">
-                      <span>End Time</span>
-                      <div className="schedule-time-row">
-                        <select
-                          value={scheduleForm.endTime}
-                          onChange={event =>
-                            setScheduleForm(prev => ({
-                              ...prev,
-                              endTime: event.target.value
-                            }))
-                          }
-                        >
-                          {timeOptions.map(time => (
-                            <option key={`end-${time}`} value={time}>
-                              {time}
-                            </option>
-                          ))}
-                        </select>
-                        <select
-                          value={scheduleForm.endPeriod}
-                          onChange={event =>
-                            setScheduleForm(prev => ({
-                              ...prev,
-                              endPeriod: event.target.value
-                            }))
-                          }
-                        >
-                          <option value="AM">AM</option>
-                          <option value="PM">PM</option>
-                        </select>
-                      </div>
-                    </label>
-                  </div>
-                  <div className="schedule-days">
-                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => (
-                      <button
-                        key={day}
-                        type="button"
-                        className={`day-pill ${
-                          scheduleForm.days.includes(day) ? "active" : ""
-                        }`}
-                        onClick={() => handleToggleDay(day)}
-                      >
-                        {day}
-                      </button>
-                    ))}
+                  <div className="schedule-day-grid">
+                    {dayOptions.map(day => {
+                      const isWorkingDay = scheduleForm.days.includes(day);
+                      const daySchedule = scheduleForm.daySchedules?.[day] ?? defaultDaySchedule;
+
+                      return (
+                        <div key={day} className="schedule-day-row">
+                          <label className="schedule-day-toggle">
+                            <input
+                              type="checkbox"
+                              checked={isWorkingDay}
+                              onChange={() => handleToggleDay(day)}
+                            />
+                            <span>{day}</span>
+                          </label>
+                          {isWorkingDay ? (
+                            <div className="schedule-time-row">
+                              <select
+                                value={daySchedule.startTime}
+                                onChange={event =>
+                                  handleChangeDayTime(day, "startTime", event.target.value)
+                                }
+                              >
+                                {timeOptions.map(time => (
+                                  <option key={`${day}-start-${time}`} value={time}>
+                                    {time}
+                                  </option>
+                                ))}
+                              </select>
+                              <select
+                                value={daySchedule.startPeriod}
+                                onChange={event =>
+                                  handleChangeDayTime(day, "startPeriod", event.target.value)
+                                }
+                              >
+                                <option value="AM">AM</option>
+                                <option value="PM">PM</option>
+                              </select>
+                              <select
+                                value={daySchedule.endTime}
+                                onChange={event =>
+                                  handleChangeDayTime(day, "endTime", event.target.value)
+                                }
+                              >
+                                {timeOptions.map(time => (
+                                  <option key={`${day}-end-${time}`} value={time}>
+                                    {time}
+                                  </option>
+                                ))}
+                              </select>
+                              <select
+                                value={daySchedule.endPeriod}
+                                onChange={event =>
+                                  handleChangeDayTime(day, "endPeriod", event.target.value)
+                                }
+                              >
+                                <option value="AM">AM</option>
+                                <option value="PM">PM</option>
+                              </select>
+                            </div>
+                          ) : (
+                            <div className="schedule-not-working">Not working</div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
                 <div className="form-actions">
