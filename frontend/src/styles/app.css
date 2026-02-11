@@ -527,6 +527,12 @@ body {
   gap: 8px;
 }
 
+.active-team-panel {
+  margin-top: 18px;
+  display: grid;
+  gap: 8px;
+}
+
 .member-header {
   display: grid;
   grid-template-columns: 1.1fr 1.1fr 1.1fr 0.6fr;

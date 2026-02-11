@@ -29,6 +29,9 @@ export default function CoachDashboard() {
   const [isSavingSchedule, setIsSavingSchedule] = useState(false);
   const [isDeletingMember, setIsDeletingMember] = useState(false);
   const [isDisbanding, setIsDisbanding] = useState(false);
+  const [activeMembers, setActiveMembers] = useState([]);
+  const [activeMembersLoading, setActiveMembersLoading] = useState(false);
+  const [activeMembersError, setActiveMembersError] = useState("");
   const [scheduleForm, setScheduleForm] = useState({
     startTime: "9:00",
     startPeriod: "AM",
@@ -54,6 +57,34 @@ export default function CoachDashboard() {
   useEffect(() => {
     apiFetch("api/coach_clusters.php").then(setClusters);
   }, []);
+
+useEffect(() => {
+    const active = clusters.find(cluster => cluster.status === "active");
+    if (!active) {
+      setActiveMembers([]);
+      setActiveMembersError("");
+      setActiveMembersLoading(false);
+      return;
+    }
+
+    setActiveMembersLoading(true);
+    setActiveMembersError("");
+
+    apiFetch(`api/manage_members.php?cluster_id=${active.id}`)
+      .then(memberData => {
+        const normalizedMembers = memberData.map(member => ({
+          ...member,
+          schedule: normalizeSchedule(member.schedule)
+        }));
+        setActiveMembers(normalizedMembers);
+      })
+      .catch(err => {
+        setActiveMembersError(err?.error ?? "Unable to load active team members.");
+      })
+      .finally(() => {
+        setActiveMembersLoading(false);
+      });
+  }, [clusters]);
 
   useEffect(() => {
     if (!activeCluster) return;
@@ -272,6 +303,13 @@ export default function CoachDashboard() {
             : member
         )
       );
+      setActiveMembers(prev =>
+        prev.map(member =>
+          member.id === scheduleMember.id
+            ? { ...member, schedule: scheduleForm }
+            : member
+        )
+      );
       setScheduleMember(prev =>
         prev ? { ...prev, schedule: scheduleForm } : prev
       );
@@ -297,6 +335,7 @@ export default function CoachDashboard() {
         })
       });
       setMembers(prev => [...prev, added]);
+      setActiveMembers(prev => [...prev, added]);
       setAvailableEmployees(prev =>
         prev.filter(employee => employee.id !== added.id)
       );
@@ -335,6 +374,7 @@ export default function CoachDashboard() {
       });
 
       setMembers(prev => prev.filter(item => item.id !== member.id));
+      setActiveMembers(prev => prev.filter(item => item.id !== member.id));
       setAvailableEmployees(prev => [...prev, { id: member.id, fullname: member.fullname }]);
       setClusters(prev =>
         prev.map(cluster =>
@@ -485,6 +525,43 @@ export default function CoachDashboard() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {clusters.some(cluster => cluster.status === "active") && (
+            <div className="active-team-panel">
+              <div className="section-title">Active Team Members</div>
+              {activeMembersLoading && (
+                <div className="modal-text">Loading members...</div>
+              )}
+              {!activeMembersLoading && activeMembersError && (
+                <div className="error">{activeMembersError}</div>
+              )}
+              {!activeMembersLoading && !activeMembersError && activeMembers.length === 0 && (
+                <div className="empty-state">No employees added to the active cluster yet.</div>
+              )}
+              {!activeMembersLoading && !activeMembersError && activeMembers.length > 0 && (
+                <div className="member-list member-list-dashboard">
+                  <div className="member-header">
+                    <span>Members</span>
+                    <span>Current Schedule</span>
+                    <span>Assigned Days</span>
+                    <span />
+                  </div>
+                  {activeMembers.map(member => (
+                    <div key={member.id} className="member-item">
+                      <div className="member-name">{member.fullname}</div>
+                      <div className="member-schedule">
+                        {renderSchedulePreview(member)}
+                      </div>
+                      <div className="member-days">
+                        {renderScheduleDays(member)}
+                      </div>
+                      <div />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </section>
