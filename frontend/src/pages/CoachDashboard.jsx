@@ -664,45 +664,28 @@ useEffect(() => {
                 <div className="empty-state">No employees added to the active cluster yet.</div>
               )}
               {!activeMembersLoading && !activeMembersError && activeMembers.length > 0 && (
-                <div className="member-list member-list-dashboard">
-                  <div className="member-header">
-                    <span>Members</span>
-                    <span>Schedule</span>
+                <div className="active-members-schedule-table" role="table" aria-label="Active team schedule">
+                  <div className="active-members-schedule-header" role="row">
+                    <span role="columnheader">Members</span>
+                    <span role="columnheader">Mon</span>
+                    <span role="columnheader">Tue</span>
+                    <span role="columnheader">Wed</span>
+                    <span role="columnheader">Thu</span>
+                    <span role="columnheader">Fri</span>
+                    <span role="columnheader">Sat</span>
+                    <span role="columnheader">Sun</span>
                   </div>
                   {activeMembers.map(member => {
-                    const assignedDays = getAssignedDays(member);
                     return (
-                      <div key={member.id} className="member-item">
-                        <div className="member-name">{member.fullname}</div>
-                        <div className="member-days">
-                          <div className="schedule-week">
-                            {dayOptions.map(day => (
-                              <div
-                                key={`${member.id}-${day}-label`}
-                                className={`schedule-day${
-                                  assignedDays.includes(day) ? " active" : ""
-                                }`}
-                              >
-                                {day}
-                              </div>
-                            ))}
-                          </div>
-                          <div className="schedule-times">
-                            {dayOptions.map(day => (
-                              <div
-                                key={`${member.id}-${day}-time`}
-                                className={`schedule-time${
-                                  assignedDays.includes(day) ? " active" : ""
-                                }`}
-                              >
-                                {formatActiveMemberDayTime(member, day)}
-                              </div>
-                            ))}
-                          </div>
-                          {assignedDays.length === 0 && (
-                            <div className="member-days-empty">Not scheduled</div>
-                          )}
-                        </div>
+                      <div key={member.id} className="active-members-schedule-row" role="row">
+                        <div className="active-members-owner" role="cell">{member.fullname}</div>
+                        <div role="cell">{formatActiveMemberDayTime(member, "Mon")}</div>
+                        <div role="cell">{formatActiveMemberDayTime(member, "Tue")}</div>
+                        <div role="cell">{formatActiveMemberDayTime(member, "Wed")}</div>
+                        <div role="cell">{formatActiveMemberDayTime(member, "Thu")}</div>
+                        <div role="cell">{formatActiveMemberDayTime(member, "Fri")}</div>
+                        <div role="cell">{formatActiveMemberDayTime(member, "Sat")}</div>
+                        <div role="cell">{formatActiveMemberDayTime(member, "Sun")}</div>
                       </div>
                     );
                   })}

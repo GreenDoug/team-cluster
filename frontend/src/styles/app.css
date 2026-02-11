@@ -537,6 +537,55 @@ body {
   gap: 8px;
 }
 
+.active-members-schedule-table {
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.active-members-schedule-header,
+.active-members-schedule-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1.2fr) repeat(7, minmax(92px, 1fr));
+  gap: 0;
+}
+
+.active-members-schedule-header {
+  background: #e5e7eb;
+  border-bottom: 1px solid #cbd5e1;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.active-members-schedule-header span,
+.active-members-schedule-row div {
+  padding: 10px 12px;
+  border-right: 1px solid #e2e8f0;
+}
+
+.active-members-schedule-header span:last-child,
+.active-members-schedule-row div:last-child {
+  border-right: none;
+}
+
+.active-members-schedule-row {
+  background: #ffffff;
+  font-size: 12px;
+  color: #334155;
+}
+
+.active-members-schedule-row:not(:last-child) {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.active-members-owner {
+  font-weight: 700;
+  color: #1f2937;
+  background: #d9f99d;
+}
+
 .member-header {
   display: grid;
   grid-template-columns: minmax(140px, 1fr) minmax(180px, 1.25fr) minmax(180px, 1fr) minmax(150px, 0.8fr);
@@ -721,6 +770,11 @@ body {
   .member-list-dashboard .member-header,
   .member-list-dashboard .member-item {
     grid-template-columns: 1fr;
+  }
+
+  .active-members-schedule-header,
+  .active-members-schedule-row {
+    grid-template-columns: minmax(120px, 1.2fr) repeat(7, minmax(84px, 1fr));
   }
 
   .member-item .member-action {
