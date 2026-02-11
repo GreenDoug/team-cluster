@@ -11,9 +11,9 @@ export default function CoachDashboard() {
     endTime: "5:00",
     endPeriod: "PM"
   };
-  const timeOptions = Array.from({ length: 12 * 60 }, (_, index) => {
-    const hour = Math.floor(index / 60) + 1;
-    const minute = index % 60;
+  const timeOptions = Array.from({ length: 24 }, (_, index) => {
+    const hour = Math.floor(index / 2) + 1;
+    const minute = (index % 2) * 30;
     return `${hour}:${minute.toString().padStart(2, "0")}`;
   });
   const [clusters, setClusters] = useState([]);
