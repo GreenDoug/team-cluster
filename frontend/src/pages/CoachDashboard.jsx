@@ -357,6 +357,47 @@ useEffect(() => {
     return "Not scheduled";
   };
 
+  const getScheduleSummary = member => {
+    const normalizedSchedule = normalizeSchedule(member?.schedule);
+    if (!normalizedSchedule || Array.isArray(normalizedSchedule)) {
+      return "Not scheduled";
+    }
+
+    const days = Array.isArray(normalizedSchedule.days) ? normalizedSchedule.days : [];
+    if (days.length === 0) return "Not scheduled";
+
+    const firstDaySchedule = normalizedSchedule.daySchedules?.[days[0]];
+    if (!firstDaySchedule) return "Schedule set";
+
+    const firstRange = formatTimeRange(firstDaySchedule);
+    const hasMixedRanges = days.some(day => {
+      const daySchedule = normalizedSchedule.daySchedules?.[day];
+      if (!daySchedule) return true;
+      return formatTimeRange(daySchedule) !== firstRange;
+    });
+
+    return hasMixedRanges ? "Variable shifts" : firstRange;
+  };
+
+  const getAssignedDays = member => {
+    const normalizedSchedule = normalizeSchedule(member?.schedule);
+    if (
+      normalizedSchedule &&
+      typeof normalizedSchedule === "object" &&
+      !Array.isArray(normalizedSchedule) &&
+      Array.isArray(normalizedSchedule.days) &&
+      normalizedSchedule.days.length > 0
+    ) {
+      return normalizedSchedule.days;
+    }
+
+    if (Array.isArray(normalizedSchedule) && normalizedSchedule.length > 0) {
+      return normalizedSchedule;
+    }
+
+    return [];
+  };
+
   const handleSaveSchedule = async () => {
     if (!scheduleMember || !activeCluster || isSavingSchedule) return;
     setIsSavingSchedule(true);
@@ -650,7 +691,7 @@ useEffect(() => {
                   </div>
                 </div>
                 <button
-                  className="btn link"
+                   className="btn link modal-close-btn"
                   type="button"
                   onClick={handleCloseModal}
                 >
@@ -674,14 +715,26 @@ useEffect(() => {
                         <span>Current Schedule</span>
                         <span>Assigned Days</span>
                         <span className="member-action-col">Actions</span>
-                        <span className="member-action-col">Action</span>
                       </div>
                     )}
                     {members.map(member => (
                       <div key={member.id} className="member-item">
                         <div className="member-name">{member.fullname}</div>
+                        <div className="member-schedule-summary">
+                          {getScheduleSummary(member)}
+                        </div>
                         <div className="member-days">
-                          {renderScheduleDays(member)}
+                          {getAssignedDays(member).length > 0 ? (
+                            <div className="member-day-chips">
+                              {getAssignedDays(member).map(day => (
+                                <span key={`${member.id}-${day}`} className="member-day-chip">
+                                  {day}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            "Not scheduled"
+                          )}
                         </div>
                         <div className="member-action">
                           <button
@@ -768,7 +821,7 @@ useEffect(() => {
                   </div>
                 </div>
                 <button
-                  className="btn link"
+                   className="btn link modal-close-btn"
                   type="button"
                   onClick={handleCloseSchedule}
                 >
