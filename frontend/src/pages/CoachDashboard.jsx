@@ -337,24 +337,36 @@ useEffect(() => {
     }));
   };
 
-  const renderScheduleDays = member => {
-    if (!member?.schedule) return "Not scheduled";
-    const normalizedSchedule = normalizeSchedule(member.schedule);
-    if (Array.isArray(normalizedSchedule)) return normalizedSchedule.join(", ");
+  const getOrganizedAssignedDays = member => {
+    const normalizedSchedule = normalizeSchedule(member?.schedule);
+
+    if (Array.isArray(normalizedSchedule) && normalizedSchedule.length > 0) {
+      return normalizedSchedule
+        .filter(day => dayOptions.includes(day))
+        .sort((a, b) => dayOptions.indexOf(a) - dayOptions.indexOf(b))
+        .map(day => ({ day, timeRange: "Schedule set" }));
+    }
+
     if (
       normalizedSchedule &&
       typeof normalizedSchedule === "object" &&
+      !Array.isArray(normalizedSchedule) &&
       Array.isArray(normalizedSchedule.days) &&
       normalizedSchedule.days.length > 0
     ) {
       return normalizedSchedule.days
+      .filter(day => dayOptions.includes(day))
+        .sort((a, b) => dayOptions.indexOf(a) - dayOptions.indexOf(b))
         .map(day => {
           const daySchedule = normalizedSchedule.daySchedules?.[day];
-          return daySchedule ? `${day} (${formatTimeRange(daySchedule)})` : day;
-        })
-        .join(", ");
+          return {
+            day,
+            timeRange: daySchedule ? formatTimeRange(daySchedule) : "Schedule set"
+          };
+        });
     }
-    return "Not scheduled";
+    
+    return [];
   };
 
   const getScheduleSummary = member => {
@@ -666,15 +678,29 @@ useEffect(() => {
                     <span>Assigned Days</span>
                     <span />
                   </div>
-                  {activeMembers.map(member => (
-                    <div key={member.id} className="member-item">
-                      <div className="member-name">{member.fullname}</div>
-                      <div className="member-days">
-                        {renderScheduleDays(member)}
+                  {activeMembers.map(member => {
+                    const organizedDays = getOrganizedAssignedDays(member);
+                    return (
+                      <div key={member.id} className="member-item">
+                        <div className="member-name">{member.fullname}</div>
+                        <div className="member-days">
+                          {organizedDays.length > 0 ? (
+                            <div className="assigned-day-list">
+                              {organizedDays.map(({ day, timeRange }) => (
+                                <div key={`${member.id}-${day}`} className="assigned-day-row">
+                                  <span className="assigned-day-name">{day}</span>
+                                  <span className="assigned-day-time">{timeRange}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            "Not scheduled"
+                          )}
+                        </div>
+                        <div />
                       </div>
-                      <div />
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>

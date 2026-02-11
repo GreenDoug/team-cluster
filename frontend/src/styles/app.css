@@ -583,6 +583,28 @@ body {
   font-size: 13px;
 }
 
+.member-list-dashboard .assigned-day-list {
+  display: grid;
+  gap: 8px;
+}
+
+.member-list-dashboard .assigned-day-row {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+}
+
+.member-list-dashboard .assigned-day-name {
+  font-weight: 700;
+  color: #1d4ed8;
+}
+
+.member-list-dashboard .assigned-day-time {
+  color: #475569;
+  line-height: 1.4;
+}
+
 .member-day-chips {
   display: flex;
   flex-wrap: wrap;
@@ -671,6 +693,11 @@ body {
 
   .member-item .member-days {
     grid-column: 1 / -1;
+  }
+
+  .member-list-dashboard .assigned-day-row {
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 8px;
   }
 
   .member-item .member-action {
