@@ -15,6 +15,14 @@ if ($name === "") {
 }
 
 $coach_id = (int)$_SESSION["user"]["id"];
+$existing_cluster = $conn->query(
+    "SELECT id FROM clusters WHERE coach_id = $coach_id LIMIT 1"
+);
+
+if ($existing_cluster && $existing_cluster->num_rows > 0) {
+    http_response_code(409);
+    exit(json_encode(["error" => "Only one team cluster is allowed per team coach."]));
+}
 $safe_name = $conn->real_escape_string($name);
 $safe_description = $conn->real_escape_string($description);
 

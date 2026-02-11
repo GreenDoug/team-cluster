@@ -28,6 +28,7 @@ export default function CoachDashboard() {
   const [scheduleError, setScheduleError] = useState("");
   const [isSavingSchedule, setIsSavingSchedule] = useState(false);
   const [isDeletingMember, setIsDeletingMember] = useState(false);
+  const [isDisbanding, setIsDisbanding] = useState(false);
   const [scheduleForm, setScheduleForm] = useState({
     startTime: "9:00",
     startPeriod: "AM",
@@ -43,7 +44,7 @@ export default function CoachDashboard() {
     if (typeof schedule === "string") {
       try {
         return JSON.parse(schedule);
-      } catch (error) {
+      } catch {
         return schedule;
       }
     }
@@ -92,7 +93,7 @@ export default function CoachDashboard() {
   const handleLogout = async () => {
     try {
       await apiFetch("auth/logout.php", { method: "POST" });
-    } catch (error) {
+    } catch {
       console.error("Logout failed", error);
     } finally {
       localStorage.removeItem("teamClusterUser");
@@ -115,6 +116,10 @@ export default function CoachDashboard() {
   const handleSubmit = async event => {
     event.preventDefault();
     if (isSubmitting) return;
+    if (clusters.length > 0) {
+      setError("Only one team cluster is allowed per team coach.");
+      return;
+    }
     setIsSubmitting(true);
     setError("");
 
@@ -147,6 +152,33 @@ export default function CoachDashboard() {
 
   const handleManageClick = cluster => {
     setActiveCluster(cluster);
+  };
+
+  const handleDisbandCluster = async cluster => {
+    if (!cluster || isDisbanding) return;
+    const confirmed = window.confirm(
+      `Disband ${cluster.name}? This will remove all members and schedules.`
+    );
+    if (!confirmed) return;
+
+    setIsDisbanding(true);
+    setError("");
+
+    try {
+      await apiFetch("api/disband_cluster.php", {
+        method: "POST",
+        body: JSON.stringify({ cluster_id: cluster.id })
+      });
+      setClusters(prev => prev.filter(item => item.id !== cluster.id));
+      if (activeCluster?.id === cluster.id) {
+        handleCloseModal();
+      }
+      setShowForm(false);
+    } catch (err) {
+      setError(err?.error ?? "Unable to disband cluster.");
+    } finally {
+      setIsDisbanding(false);
+    }
   };
 
   const handleCloseModal = () => {
@@ -349,18 +381,20 @@ export default function CoachDashboard() {
           </div>
           <div className="toolbar">
             <span className="datetime">{dateTimeLabel}</span>
-            <button
-              className="btn primary"
-              type="button"
-              onClick={() => setShowForm(prev => !prev)}
-            >
-              {showForm ? "Close" : "+ Add Cluster"}
-            </button>
+           {clusters.length === 0 && (
+              <button
+                className="btn primary"
+                type="button"
+                onClick={() => setShowForm(prev => !prev)}
+              >
+                {showForm ? "Close" : "+ Add Cluster"}
+              </button>
+            )}
           </div>
         </header>
 
         <section className="content">
-          {showForm && (
+          {showForm && clusters.length === 0 && (
             <form className="card cluster-form" onSubmit={handleSubmit}>
               <div className="form-header">Create Team Cluster</div>
               <div className="form-grid">
@@ -439,6 +473,14 @@ export default function CoachDashboard() {
                       onClick={() => handleManageClick(c)}
                     >
                       Manage
+                    </button>
+                    <button
+                      className="btn danger"
+                      type="button"
+                      onClick={() => handleDisbandCluster(c)}
+                      disabled={isDisbanding}
+                    >
+                      {isDisbanding ? "Disbanding..." : "Disband"}
                     </button>
                   </div>
                 </div>
