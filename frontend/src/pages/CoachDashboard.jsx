@@ -337,29 +337,6 @@ useEffect(() => {
     }));
   };
 
-  const renderSchedulePreview = member => {
-    if (!member?.schedule) return "Not scheduled";
-    if (typeof member.schedule === "string") return member.schedule;
-    if (Array.isArray(member.schedule)) return member.schedule.join(", ");
-    const normalizedSchedule = normalizeSchedule(member.schedule);
-    if (!normalizedSchedule || typeof normalizedSchedule !== "object") {
-      return "Schedule updated";
-    }
-
-    if (normalizedSchedule.daySchedules && Array.isArray(normalizedSchedule.days)) {
-      const firstDay = normalizedSchedule.days.find(day => normalizedSchedule.daySchedules[day]);
-      if (firstDay) {
-        return `${firstDay}: ${formatTimeRange(normalizedSchedule.daySchedules[firstDay])}`;
-      }
-    }
-
-    if (normalizedSchedule.startTime && normalizedSchedule.endTime) {
-      return formatTimeRange(normalizedSchedule);
-    }
-
-    return "Schedule updated";
-  };
-
   const renderScheduleDays = member => {
     if (!member?.schedule) return "Not scheduled";
     const normalizedSchedule = normalizeSchedule(member.schedule);
@@ -645,16 +622,12 @@ useEffect(() => {
                 <div className="member-list member-list-dashboard">
                   <div className="member-header">
                     <span>Members</span>
-                    <span>Current Schedule</span>
                     <span>Assigned Days</span>
                     <span />
                   </div>
                   {activeMembers.map(member => (
                     <div key={member.id} className="member-item">
                       <div className="member-name">{member.fullname}</div>
-                      <div className="member-schedule">
-                        {renderSchedulePreview(member)}
-                      </div>
                       <div className="member-days">
                         {renderScheduleDays(member)}
                       </div>
@@ -707,9 +680,6 @@ useEffect(() => {
                     {members.map(member => (
                       <div key={member.id} className="member-item">
                         <div className="member-name">{member.fullname}</div>
-                        <div className="member-schedule">
-                          {renderSchedulePreview(member)}
-                        </div>
                         <div className="member-days">
                           {renderScheduleDays(member)}
                         </div>
@@ -806,12 +776,6 @@ useEffect(() => {
                 </button>
               </div>
               <div className="modal-body">
-                <div className="schedule-summary">
-                  <div className="schedule-label">Current schedule</div>
-                  <div className="schedule-preview">
-                    {renderSchedulePreview(scheduleMember)}
-                  </div>
-                </div>
                 <div className="schedule-card">
                   <div className="schedule-label">Schedule Details</div>
                   <div className="schedule-day-grid">
