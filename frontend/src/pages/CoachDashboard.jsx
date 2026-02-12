@@ -259,13 +259,18 @@ export default function CoachDashboard() {
       typeof normalizedSchedule !== "object" ||
       Array.isArray(normalizedSchedule)
     ) {
-      return { label: "Available", className: "status-available" };
+      return null;
+    }
+
+    const assignedDays = Array.isArray(normalizedSchedule.days)
+      ? normalizedSchedule.days
+      : [];
+    if (assignedDays.length === 0) {
+      return null;
     }
 
     const currentDay = getCurrentDayLabel();
-    const isWorkingToday = Array.isArray(normalizedSchedule.days)
-      ? normalizedSchedule.days.includes(currentDay)
-      : false;
+    const isWorkingToday = assignedDays.includes(currentDay);
 
     if (!isWorkingToday) {
       return { label: "Not available", className: "status-not-available" };
@@ -1056,7 +1061,9 @@ useEffect(() => {
                           );
                         })}
                         <div role="cell">
-                          <span className={`member-status-pill ${status.className}`}>{status.label}</span>
+                          {status && (
+                            <span className={`member-status-pill ${status.className}`}>{status.label}</span>
+                          )}
                         </div>
                       </div>
                     );
@@ -1307,6 +1314,7 @@ useEffect(() => {
 
                               <div className="schedule-time-row">
                                 <select
+                                  className="schedule-break-select"
                                   value={`${daySchedule.lunchBreakStartTime}|${daySchedule.lunchBreakStartPeriod}`}
                                   onChange={event =>
                                     handleChangeDayTime(day, "lunchBreakStart", event.target.value)
@@ -1325,6 +1333,7 @@ useEffect(() => {
 
                               <div className="schedule-time-row">
                                 <select
+                                  className="schedule-break-select"
                                   value={`${daySchedule.lunchBreakEndTime}|${daySchedule.lunchBreakEndPeriod}`}
                                   onChange={event =>
                                     handleChangeDayTime(day, "lunchBreakEnd", event.target.value)
@@ -1343,6 +1352,7 @@ useEffect(() => {
 
                               <div className="schedule-time-row">
                                 <select
+                                  className="schedule-break-select1"
                                   value={`${daySchedule.breakStartTime}|${daySchedule.breakStartPeriod}`}
                                   onChange={event =>
                                     handleChangeDayTime(day, "breakStart", event.target.value)
@@ -1361,6 +1371,7 @@ useEffect(() => {
 
                               <div className="schedule-time-row">
                                 <select
+                                  className="schedule-break-select1"
                                   value={`${daySchedule.breakEndTime}|${daySchedule.breakEndPeriod}`}
                                   onChange={event =>
                                     handleChangeDayTime(day, "breakEnd", event.target.value)

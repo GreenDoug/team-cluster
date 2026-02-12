@@ -992,6 +992,14 @@ body {
   background-repeat: no-repeat;
 }
 
+.schedule-time-grid select.schedule-break-select {
+  background-color: #eff6ff;
+}
+
+.schedule-time-grid select.schedule-break-select1 {
+  background-color: #f3efff;
+}
+
 .schedule-time-grid select:hover {
   border-color: #94a3b8;
 }
