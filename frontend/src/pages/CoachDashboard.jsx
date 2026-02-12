@@ -633,7 +633,7 @@ useEffect(() => {
       <main className="main">
         <header className="topbar">
           <div>
-            <h2>TEAM</h2>
+            <h2>DASHBOARD</h2>
             <div className="section-title">Team Coach Dashboard</div>
           </div>
           <div className="toolbar">
