@@ -410,7 +410,7 @@ body {
 .table-header,
 .table-row {
   display: grid;
-  grid-template-columns: 1.3fr 1.8fr 0.6fr 0.8fr 0.7fr 0.7fr;
+  grid-template-columns: 1.3fr 1.8fr 0.6fr 0.8fr 0.7fr 0.9fr 1.2fr;
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
