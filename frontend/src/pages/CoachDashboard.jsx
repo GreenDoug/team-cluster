@@ -159,10 +159,10 @@ export default function CoachDashboard() {
     const validOptions = [];
     for (let offset = 30; offset <= MAX_SHIFT_MINUTES; offset += 30) {
       const totalMinutes = startMinutes + offset;
-      if (totalMinutes >= 24 * 60) break;
+      const normalizedMinutes = ((totalMinutes % (24 * 60)) + 24 * 60) % (24 * 60);
 
-      const hour24 = Math.floor(totalMinutes / 60);
-      const minute = totalMinutes % 60;
+      const hour24 = Math.floor(normalizedMinutes / 60);
+      const minute = normalizedMinutes % 60;
       const period = hour24 >= 12 ? "PM" : "AM";
       const hour12 = hour24 % 12 || 12;
       validOptions.push({
@@ -392,10 +392,16 @@ useEffect(() => {
 
   const handleChangeDayTime = (day, field, value) => {
     setScheduleForm(prev => {
-      const currentDaySchedule = {
-        ...(prev.daySchedules?.[day] ?? { ...defaultDaySchedule }),
-        [field]: value
-      };
+      const baseDaySchedule = prev.daySchedules?.[day] ?? { ...defaultDaySchedule };
+      const currentDaySchedule = { ...baseDaySchedule };
+
+      if (field === "endTime") {
+        const [time, period] = String(value).split("|");
+        currentDaySchedule.endTime = time ?? baseDaySchedule.endTime;
+        currentDaySchedule.endPeriod = period ?? baseDaySchedule.endPeriod;
+      } else {
+        currentDaySchedule[field] = value;
+      }
 
       const endTimeOptions = getEndTimeOptions(
         currentDaySchedule.startTime,
@@ -989,7 +995,7 @@ useEffect(() => {
                                 <option value="PM">PM</option>
                               </select>
                               <select
-                                value={daySchedule.endTime}
+                                value={`${daySchedule.endTime}|${daySchedule.endPeriod}`}
                                 onChange={event =>
                                   handleChangeDayTime(day, "endTime", event.target.value)
                                 }
@@ -997,28 +1003,11 @@ useEffect(() => {
                                 {endTimeOptions.map(option => (
                                   <option
                                     key={`${day}-end-${option.time}-${option.period}`}
-                                    value={option.time}
+                                    value={`${option.time}|${option.period}`}
                                   >
-                                    {option.time}
+                                    {option.time} {option.period}
                                   </option>
                                 ))}
-                              </select>
-                              <select
-                                value={daySchedule.endPeriod}
-                                onChange={event =>
-                                  handleChangeDayTime(day, "endPeriod", event.target.value)
-                                }
-                              >
-                                {endTimeOptions
-                                  .filter(option => option.time === daySchedule.endTime)
-                                  .map(option => (
-                                    <option
-                                      key={`${day}-end-period-${option.time}-${option.period}`}
-                                      value={option.period}
-                                    >
-                                      {option.period}
-                                    </option>
-                                  ))}
                               </select>
                             </div>
                           ) : (
