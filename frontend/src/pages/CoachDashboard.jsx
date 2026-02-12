@@ -261,6 +261,28 @@ useEffect(() => {
     setActiveCluster(cluster);
   };
 
+  const handleReuploadCluster = async cluster => {
+    if (!cluster) return;
+
+    setError("");
+
+    try {
+      await apiFetch("api/resubmit_cluster.php", {
+        method: "POST",
+        body: JSON.stringify({ cluster_id: cluster.id })
+      });
+      setClusters(prev =>
+        prev.map(item =>
+          item.id === cluster.id
+            ? { ...item, status: "pending", rejection_reason: null }
+            : item
+        )
+      );
+    } catch (err) {
+      setError(err?.error ?? "Unable to re-upload cluster for review.");
+    }
+  };
+
   const handleDisbandCluster = async cluster => {
     if (!cluster || isDisbanding) return;
     const confirmed = window.confirm(
@@ -615,6 +637,7 @@ useEffect(() => {
                 <div>Members</div>
                 <div>Created</div>
                 <div>Status</div>
+                <div>Rejection Reason</div>
                 <div>Action</div>
               </div>
              {clusters.map(c => (
@@ -628,6 +651,9 @@ useEffect(() => {
                   <div className="table-cell">
                     <span className={`badge ${c.status}`}>{c.status}</span>
                   </div>
+                  <div className="table-cell muted">
+                    {c.rejection_reason || "—"}
+                  </div>
                   <div className="table-cell">
                     <button
                       className="btn link"
@@ -637,6 +663,15 @@ useEffect(() => {
                     >
                       Manage
                     </button>
+                    {c.status === "rejected" && (
+                      <button
+                        className="btn secondary"
+                        type="button"
+                        onClick={() => handleReuploadCluster(c)}
+                      >
+                        Re-upload
+                      </button>
+                    )}
                     <button
                       className="btn danger"
                       type="button"

@@ -19,10 +19,11 @@ CREATE TABLE IF NOT EXISTS clusters (
   description TEXT,
   coach_id INT NOT NULL,
   status ENUM('pending', 'active', 'rejected') NOT NULL DEFAULT 'pending',
+  rejection_reason TEXT,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_clusters_coach
-    FOREIGN KEY (coach_id) REFERENCES users(id)
-    ON DELETE CASCADE
+  FOREIGN KEY (coach_id) REFERENCES users(id)
+  ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS cluster_members (

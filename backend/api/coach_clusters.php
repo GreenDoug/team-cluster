@@ -9,6 +9,7 @@ $res = $conn->query(
             c.description,
             c.status,
             c.created_at,
+            c.rejection_reason,
             COUNT(cm.employee_id) AS members
      FROM clusters c
      LEFT JOIN cluster_members cm ON cm.cluster_id = c.id

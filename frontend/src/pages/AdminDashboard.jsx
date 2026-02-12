@@ -35,9 +35,23 @@ export default function AdminDashboard() {
   };
 
   async function updateStatus(id, status) {
+    let rejectionReason = "";
+
+    if (status === "rejected") {
+      rejectionReason = window.prompt("Please enter the rejection reason:", "")?.trim() ?? "";
+      if (!rejectionReason) {
+        window.alert("Rejection reason is required.");
+        return;
+      }
+    }
+
     await apiFetch("api/approve_cluster.php", {
       method: "POST",
-      body: JSON.stringify({ cluster_id: id, status })
+      body: JSON.stringify({
+        cluster_id: id,
+        status,
+        rejection_reason: rejectionReason
+      })
     });
     fetchClusters();
   }
@@ -93,6 +107,7 @@ export default function AdminDashboard() {
                 <div>Members</div>
                 <div>Created</div>
                 <div>Status</div>
+                <div>Rejection Reason</div>
                 <div>Action</div>
               </div>
              {clusters.map(c => (
@@ -103,6 +118,9 @@ export default function AdminDashboard() {
                   <div className="table-cell">{formatDate(c.created_at)}</div>
                   <div className="table-cell">
                     <span className={`badge ${c.status}`}>{c.status}</span>
+                  </div>
+                  <div className="table-cell muted">
+                    {c.rejection_reason || "—"}
                   </div>
                   <div className="table-cell">
                     {c.status === "pending" ? (

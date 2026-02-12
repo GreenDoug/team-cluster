@@ -44,5 +44,6 @@ echo json_encode([
     "description" => $description,
     "status" => "pending",
     "members" => 0,
+    "rejection_reason" => null,
     "created_at" => date("Y-m-d")
 ]);
