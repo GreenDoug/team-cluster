@@ -634,7 +634,7 @@ useEffect(() => {
         <header className="topbar">
           <div>
             <h2>DASHBOARD</h2>
-            <div className="section-title">Team Coach Dashboard</div>
+            <div className="nav-item">Team Coach Dashboard</div>
           </div>
           <div className="toolbar">
             <span className="datetime">{dateTimeLabel}</span>

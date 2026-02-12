@@ -12,16 +12,27 @@ body {
 .dashboard {
   display: flex;
   min-height: 100vh;
-  background: #f2f3f5;
+   background: linear-gradient(
+    160deg,
+    #ffffff 0%,
+    #f0f0f0 80%,
+    #dfdfdf 100%
+  );
 }
 
 .sidebar {
   width: 220px;
-  background: #ffffff;
+  background: linear-gradient(
+    160deg,
+    #2b5876 2%,
+    #204761 60%,
+    #2b234a 100%
+  );
   border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   padding: 24px 16px;
+  color: white;
 }
 
 .sidebar .brand {
@@ -29,7 +40,7 @@ body {
   align-items: center;
   gap: 10px;
   font-weight: 700;
-  color: #1f2937;
+  color: #f5f5f5;
   margin-bottom: 24px;
 }
 
@@ -46,7 +57,7 @@ body {
 
 .sidebar .user-meta {
   font-size: 13px;
-  color: #6b7280;
+  color: #c4c4c4;
 }
 
 .nav {
@@ -68,7 +79,7 @@ body {
 
 .nav-item.active {
   background: #e5f0ff;
-  color: #1d4ed8;
+  color: #2b5876;
   font-weight: 600;
 }
 
@@ -169,9 +180,10 @@ body {
 
 
 .section-title {
-  font-size: 14px;
-  color: #6b7280;
+  font-size: 16px;
+  color: #2b5876;
   margin-bottom: 16px;
+  font-weight: 500;
 }
 
 .overview-grid {
@@ -418,9 +430,10 @@ body {
 }
 
 .table-header {
-  background: #f9fafb;
+  background: #e5e7e9;
   font-weight: 600;
-  color: #1d4ed8;
+  font-size: 13.5px;
+  color: #000000;
   border-bottom: 1px solid #e5e7eb;
 }
 
@@ -532,7 +545,7 @@ body {
 }
 
 .active-team-panel {
-  margin-top: 18px;
+  margin-top: 100px;
   display: grid;
   gap: 8px;
 }
@@ -555,7 +568,8 @@ body {
   background: #e5e7eb;
   border-bottom: 1px solid #cbd5e1;
   font-size: 14px;
-  font-weight: 700;
+  font-family: inherit;
+  font-weight: 560;
   color: #1f2937;
 }
 
@@ -581,9 +595,24 @@ body {
 }
 
 .active-members-owner {
-  font-weight: 700;
+  font-weight: 500;
   color: #1f2937;
-  background: #a7cbf7;
+}
+
+.active-members-schedule-row:nth-child(4n + 1) .active-members-owner {
+  background: #D9EAFD;
+}
+
+.active-members-schedule-row:nth-child(4n + 2) .active-members-owner {
+  background: #dae8f8;
+}
+
+.active-members-schedule-row:nth-child(4n + 3) .active-members-owner {
+  background: #cbe0f8;
+}
+
+.active-members-schedule-row:nth-child(4n + 4) .active-members-owner {
+  background: #b9d7f9;
 }
 
 .member-header {
