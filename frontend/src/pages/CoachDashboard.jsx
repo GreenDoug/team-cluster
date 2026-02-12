@@ -268,16 +268,28 @@ export default function CoachDashboard() {
       : false;
 
     if (!isWorkingToday) {
-      return { label: "Available", className: "status-available" };
+      return { label: "Not available", className: "status-not-available" };
     }
 
     const daySchedule = normalizedSchedule.daySchedules?.[currentDay];
     if (!daySchedule) {
-      return { label: "Available", className: "status-available" };
+      return { label: "Not available", className: "status-not-available" };
     }
 
     const now = new Date();
     const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+    if (
+      !isTimeWithinRange(
+        nowMinutes,
+        daySchedule.startTime,
+        daySchedule.startPeriod,
+        daySchedule.endTime,
+        daySchedule.endPeriod
+      )
+    ) {
+      return { label: "Not available", className: "status-not-available" };
+    }
 
     if (
       isTimeWithinRange(

@@ -671,6 +671,12 @@ body {
   border: 1px solid #86efac;
 }
 
+.status-not-available {
+  background: #777777;
+  color: #e7e7e7;
+  border: 1px solid #575757;
+}
+
 
 .member-header {
   display: grid;
