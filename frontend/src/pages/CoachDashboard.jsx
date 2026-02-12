@@ -16,6 +16,7 @@ export default function CoachDashboard() {
     const minute = (index % 2) * 30;
     return `${hour}:${minute.toString().padStart(2, "0")}`;
   });
+  const MAX_SHIFT_MINUTES = 9 * 60;
   const [clusters, setClusters] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [formValues, setFormValues] = useState({ name: "", description: "" });
@@ -128,6 +129,49 @@ export default function CoachDashboard() {
     const endTime = schedule.endTime ?? "5:00";
     const endPeriod = schedule.endPeriod ?? "PM";
     return `${startTime} ${startPeriod} - ${endTime} ${endPeriod}`;
+  };
+
+  const toMinutes = (time, period) => {
+    const [hourPart, minutePart] = String(time).split(":");
+    const hour = Number(hourPart);
+    const minute = Number(minutePart);
+    if (
+      Number.isNaN(hour) ||
+      Number.isNaN(minute) ||
+      hour < 1 ||
+      hour > 12 ||
+      ![0, 30].includes(minute)
+    ) {
+      return null;
+    }
+
+    const normalizedHour = hour % 12;
+    const periodOffset = period === "PM" ? 12 * 60 : 0;
+    return normalizedHour * 60 + minute + periodOffset;
+  };
+
+  const getEndTimeOptions = (startTime, startPeriod) => {
+    const startMinutes = toMinutes(startTime, startPeriod);
+    if (startMinutes === null) {
+      return timeOptions.map(time => ({ time, period: "AM" }));
+    }
+
+    const validOptions = [];
+    for (let offset = 30; offset <= MAX_SHIFT_MINUTES; offset += 30) {
+      const totalMinutes = startMinutes + offset;
+      if (totalMinutes >= 24 * 60) break;
+
+      const hour24 = Math.floor(totalMinutes / 60);
+      const minute = totalMinutes % 60;
+      const period = hour24 >= 12 ? "PM" : "AM";
+      const hour12 = hour24 % 12 || 12;
+      validOptions.push({
+        time: `${hour12}:${String(minute).padStart(2, "0")}`,
+        period
+      });
+    }
+
+    return validOptions;
   };
 
   useEffect(() => {
@@ -347,16 +391,35 @@ useEffect(() => {
   };
 
   const handleChangeDayTime = (day, field, value) => {
-    setScheduleForm(prev => ({
-      ...prev,
-      daySchedules: {
-        ...prev.daySchedules,
-        [day]: {
-          ...(prev.daySchedules?.[day] ?? { ...defaultDaySchedule }),
-          [field]: value
-        }
+    setScheduleForm(prev => {
+      const currentDaySchedule = {
+        ...(prev.daySchedules?.[day] ?? { ...defaultDaySchedule }),
+        [field]: value
+      };
+
+      const endTimeOptions = getEndTimeOptions(
+        currentDaySchedule.startTime,
+        currentDaySchedule.startPeriod
+      );
+      const hasSelectedEndTime = endTimeOptions.some(
+        option =>
+          option.time === currentDaySchedule.endTime &&
+          option.period === currentDaySchedule.endPeriod
+      );
+
+      if (!hasSelectedEndTime && endTimeOptions.length > 0) {
+        currentDaySchedule.endTime = endTimeOptions[0].time;
+        currentDaySchedule.endPeriod = endTimeOptions[0].period;
       }
-    }));
+
+      return {
+        ...prev,
+        daySchedules: {
+          ...prev.daySchedules,
+          [day]: currentDaySchedule
+        }
+      };
+    });
   };
 
   const getScheduleSummary = member => {
@@ -489,7 +552,7 @@ useEffect(() => {
       setClusters(prev =>
         prev.map(cluster =>
           cluster.id === activeCluster.id
-            ? { ...cluster, members: (cluster.members ?? 0) + 1 }
+            ? { ...cluster, members: Number(cluster.members ?? 0) + 1 }
             : cluster
         )
       );
@@ -524,7 +587,10 @@ useEffect(() => {
       setClusters(prev =>
         prev.map(cluster =>
           cluster.id === activeCluster.id
-            ? { ...cluster, members: Math.max((cluster.members ?? 1) - 1, 0) }
+            ? {
+                ...cluster,
+                members: Math.max(Number(cluster.members ?? 1) - 1, 0)
+              }
             : cluster
         )
       );
@@ -884,6 +950,10 @@ useEffect(() => {
                     {dayOptions.map(day => {
                       const isWorkingDay = scheduleForm.days.includes(day);
                       const daySchedule = scheduleForm.daySchedules?.[day] ?? defaultDaySchedule;
+                      const endTimeOptions = getEndTimeOptions(
+                        daySchedule.startTime,
+                        daySchedule.startPeriod
+                      );
 
                       return (
                         <div key={day} className="schedule-day-row">
@@ -924,9 +994,12 @@ useEffect(() => {
                                   handleChangeDayTime(day, "endTime", event.target.value)
                                 }
                               >
-                                {timeOptions.map(time => (
-                                  <option key={`${day}-end-${time}`} value={time}>
-                                    {time}
+                                {endTimeOptions.map(option => (
+                                  <option
+                                    key={`${day}-end-${option.time}-${option.period}`}
+                                    value={option.time}
+                                  >
+                                    {option.time}
                                   </option>
                                 ))}
                               </select>
@@ -936,8 +1009,16 @@ useEffect(() => {
                                   handleChangeDayTime(day, "endPeriod", event.target.value)
                                 }
                               >
-                                <option value="AM">AM</option>
-                                <option value="PM">PM</option>
+                                {endTimeOptions
+                                  .filter(option => option.time === daySchedule.endTime)
+                                  .map(option => (
+                                    <option
+                                      key={`${day}-end-period-${option.time}-${option.period}`}
+                                      value={option.period}
+                                    >
+                                      {option.period}
+                                    </option>
+                                  ))}
                               </select>
                             </div>
                           ) : (
