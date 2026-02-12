@@ -9,7 +9,15 @@ export default function CoachDashboard() {
     startTime: "9:00",
     startPeriod: "AM",
     endTime: "5:00",
-    endPeriod: "PM"
+    endPeriod: "PM",
+    lunchBreakStartTime: "12:00",
+    lunchBreakStartPeriod: "PM",
+    lunchBreakEndTime: "12:30",
+    lunchBreakEndPeriod: "PM",
+    breakStartTime: "3:00",
+    breakStartPeriod: "PM",
+    breakEndTime: "3:30",
+    breakEndPeriod: "PM"
   };
   const timeOptions = Array.from({ length: 24 }, (_, index) => {
     const hour = Math.floor(index / 2) + 1;
@@ -72,7 +80,15 @@ export default function CoachDashboard() {
         startTime: baseSchedule.startTime ?? "9:00",
         startPeriod: baseSchedule.startPeriod ?? "AM",
         endTime: baseSchedule.endTime ?? "5:00",
-        endPeriod: baseSchedule.endPeriod ?? "PM"
+        endPeriod: baseSchedule.endPeriod ?? "PM",
+        lunchBreakStartTime: baseSchedule.lunchBreakStartTime ?? baseSchedule.lunchBreakTime ?? "12:00",
+        lunchBreakStartPeriod: baseSchedule.lunchBreakStartPeriod ?? baseSchedule.lunchBreakPeriod ?? "PM",
+        lunchBreakEndTime: baseSchedule.lunchBreakEndTime ?? "12:30",
+        lunchBreakEndPeriod: baseSchedule.lunchBreakEndPeriod ?? "PM",
+        breakStartTime: baseSchedule.breakStartTime ?? baseSchedule.breakTime ?? "3:00",
+        breakStartPeriod: baseSchedule.breakStartPeriod ?? baseSchedule.breakPeriod ?? "PM",
+        breakEndTime: baseSchedule.breakEndTime ?? "3:30",
+        breakEndPeriod: baseSchedule.breakEndPeriod ?? "PM"
       };
     });
 
@@ -88,7 +104,17 @@ export default function CoachDashboard() {
           startTime: value.startTime ?? daySchedules[day].startTime,
           startPeriod: value.startPeriod ?? daySchedules[day].startPeriod,
           endTime: value.endTime ?? daySchedules[day].endTime,
-          endPeriod: value.endPeriod ?? daySchedules[day].endPeriod
+          endPeriod: value.endPeriod ?? daySchedules[day].endPeriod,
+          lunchBreakStartTime:
+            value.lunchBreakStartTime ?? value.lunchBreakTime ?? daySchedules[day].lunchBreakStartTime,
+          lunchBreakStartPeriod:
+            value.lunchBreakStartPeriod ?? value.lunchBreakPeriod ?? daySchedules[day].lunchBreakStartPeriod,
+          lunchBreakEndTime: value.lunchBreakEndTime ?? daySchedules[day].lunchBreakEndTime,
+          lunchBreakEndPeriod: value.lunchBreakEndPeriod ?? daySchedules[day].lunchBreakEndPeriod,
+          breakStartTime: value.breakStartTime ?? value.breakTime ?? daySchedules[day].breakStartTime,
+          breakStartPeriod: value.breakStartPeriod ?? value.breakPeriod ?? daySchedules[day].breakStartPeriod,
+          breakEndTime: value.breakEndTime ?? daySchedules[day].breakEndTime,
+          breakEndPeriod: value.breakEndPeriod ?? daySchedules[day].breakEndPeriod
         };
       });
     }
@@ -172,6 +198,112 @@ export default function CoachDashboard() {
     }
 
     return validOptions;
+  };
+
+  const getTimeOptionsWithinRange = (startTime, startPeriod, endTime, endPeriod) => {
+    const startMinutes = toMinutes(startTime, startPeriod);
+    const endMinutes = toMinutes(endTime, endPeriod);
+
+    if (startMinutes === null || endMinutes === null || endMinutes < startMinutes) {
+      return [];
+    }
+
+    const options = [];
+    let current = startMinutes;
+    while (current <= endMinutes) {
+      const hour24 = Math.floor(current / 60);
+      const minute = current % 60;
+      const period = hour24 >= 12 ? "PM" : "AM";
+      const hour12 = hour24 % 12 || 12;
+      options.push({
+        time: `${hour12}:${String(minute).padStart(2, "0")}`,
+        period
+      });
+      current += 30;
+    }
+
+    return options;
+  };
+
+  const formatBreakTimeRange = (startTime, startPeriod, endTime, endPeriod) => {
+    if (!startTime || !startPeriod || !endTime || !endPeriod) return "—";
+    return `${startTime} ${startPeriod} - ${endTime} ${endPeriod}`;
+  };
+
+  const isTimeWithinRange = (
+    nowMinutes,
+    startTime,
+    startPeriod,
+    endTime,
+    endPeriod
+  ) => {
+    const startMinutes = toMinutes(startTime, startPeriod);
+    const endMinutes = toMinutes(endTime, endPeriod);
+
+    if (startMinutes === null || endMinutes === null || endMinutes <= startMinutes) {
+      return false;
+    }
+
+    return nowMinutes >= startMinutes && nowMinutes < endMinutes;
+  };
+
+  const getCurrentDayLabel = () => {
+    const dayIndex = new Date().getDay();
+    return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][dayIndex];
+  };
+
+  const getMemberCurrentStatus = member => {
+    const normalizedSchedule = normalizeSchedule(member?.schedule);
+    if (
+      !normalizedSchedule ||
+      typeof normalizedSchedule !== "object" ||
+      Array.isArray(normalizedSchedule)
+    ) {
+      return { label: "Available", className: "status-available" };
+    }
+
+    const currentDay = getCurrentDayLabel();
+    const isWorkingToday = Array.isArray(normalizedSchedule.days)
+      ? normalizedSchedule.days.includes(currentDay)
+      : false;
+
+    if (!isWorkingToday) {
+      return { label: "Available", className: "status-available" };
+    }
+
+    const daySchedule = normalizedSchedule.daySchedules?.[currentDay];
+    if (!daySchedule) {
+      return { label: "Available", className: "status-available" };
+    }
+
+    const now = new Date();
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+    if (
+      isTimeWithinRange(
+        nowMinutes,
+        daySchedule.lunchBreakStartTime,
+        daySchedule.lunchBreakStartPeriod,
+        daySchedule.lunchBreakEndTime,
+        daySchedule.lunchBreakEndPeriod
+      )
+    ) {
+      return { label: "On lunch break", className: "status-lunch" };
+    }
+
+    if (
+      isTimeWithinRange(
+        nowMinutes,
+        daySchedule.breakStartTime,
+        daySchedule.breakStartPeriod,
+        daySchedule.breakEndTime,
+        daySchedule.breakEndPeriod
+      )
+    ) {
+      return { label: "On break time", className: "status-break" };
+    }
+
+    return { label: "Available", className: "status-available" };
   };
 
   useEffect(() => {
@@ -395,10 +527,33 @@ useEffect(() => {
       const baseDaySchedule = prev.daySchedules?.[day] ?? { ...defaultDaySchedule };
       const currentDaySchedule = { ...baseDaySchedule };
 
-      if (field === "endTime") {
+      if (["endTime", "lunchBreakStart", "lunchBreakEnd", "breakStart", "breakEnd"].includes(field)) {
         const [time, period] = String(value).split("|");
-        currentDaySchedule.endTime = time ?? baseDaySchedule.endTime;
-        currentDaySchedule.endPeriod = period ?? baseDaySchedule.endPeriod;
+
+        if (field === "endTime") {
+          currentDaySchedule.endTime = time ?? baseDaySchedule.endTime;
+          currentDaySchedule.endPeriod = period ?? baseDaySchedule.endPeriod;
+        }
+
+        if (field === "lunchBreakStart") {
+          currentDaySchedule.lunchBreakStartTime = time ?? baseDaySchedule.lunchBreakStartTime;
+          currentDaySchedule.lunchBreakStartPeriod = period ?? baseDaySchedule.lunchBreakStartPeriod;
+        }
+
+        if (field === "lunchBreakEnd") {
+          currentDaySchedule.lunchBreakEndTime = time ?? baseDaySchedule.lunchBreakEndTime;
+          currentDaySchedule.lunchBreakEndPeriod = period ?? baseDaySchedule.lunchBreakEndPeriod;
+        }
+
+        if (field === "breakStart") {
+          currentDaySchedule.breakStartTime = time ?? baseDaySchedule.breakStartTime;
+          currentDaySchedule.breakStartPeriod = period ?? baseDaySchedule.breakStartPeriod;
+        }
+
+        if (field === "breakEnd") {
+          currentDaySchedule.breakEndTime = time ?? baseDaySchedule.breakEndTime;
+          currentDaySchedule.breakEndPeriod = period ?? baseDaySchedule.breakEndPeriod;
+        }
       } else {
         currentDaySchedule[field] = value;
       }
@@ -417,6 +572,67 @@ useEffect(() => {
         currentDaySchedule.endTime = endTimeOptions[0].time;
         currentDaySchedule.endPeriod = endTimeOptions[0].period;
       }
+
+      const shiftRangeOptions = getTimeOptionsWithinRange(
+        currentDaySchedule.startTime,
+        currentDaySchedule.startPeriod,
+        currentDaySchedule.endTime,
+        currentDaySchedule.endPeriod
+      );
+
+      const hasLunchStart = shiftRangeOptions.some(
+        option =>
+          option.time === currentDaySchedule.lunchBreakStartTime &&
+          option.period === currentDaySchedule.lunchBreakStartPeriod
+      );
+      if (!hasLunchStart && shiftRangeOptions.length > 0) {
+        currentDaySchedule.lunchBreakStartTime = shiftRangeOptions[0].time;
+        currentDaySchedule.lunchBreakStartPeriod = shiftRangeOptions[0].period;
+      }
+
+      const lunchEndOptions = getTimeOptionsWithinRange(
+        currentDaySchedule.lunchBreakStartTime,
+        currentDaySchedule.lunchBreakStartPeriod,
+        currentDaySchedule.endTime,
+        currentDaySchedule.endPeriod
+      );
+      const hasLunchEnd = lunchEndOptions.some(
+        option =>
+          option.time === currentDaySchedule.lunchBreakEndTime &&
+          option.period === currentDaySchedule.lunchBreakEndPeriod
+      );
+      if (!hasLunchEnd && lunchEndOptions.length > 0) {
+        currentDaySchedule.lunchBreakEndTime = lunchEndOptions[0].time;
+        currentDaySchedule.lunchBreakEndPeriod = lunchEndOptions[0].period;
+      }
+
+      const hasBreakStart = shiftRangeOptions.some(
+        option =>
+          option.time === currentDaySchedule.breakStartTime &&
+          option.period === currentDaySchedule.breakStartPeriod
+      );
+      if (!hasBreakStart && shiftRangeOptions.length > 0) {
+        const fallbackBreak = shiftRangeOptions[Math.min(1, shiftRangeOptions.length - 1)] ?? shiftRangeOptions[0];
+        currentDaySchedule.breakStartTime = fallbackBreak.time;
+        currentDaySchedule.breakStartPeriod = fallbackBreak.period;
+      }
+
+      const breakEndOptions = getTimeOptionsWithinRange(
+        currentDaySchedule.breakStartTime,
+        currentDaySchedule.breakStartPeriod,
+        currentDaySchedule.endTime,
+        currentDaySchedule.endPeriod
+      );
+      const hasBreakEnd = breakEndOptions.some(
+        option =>
+          option.time === currentDaySchedule.breakEndTime &&
+          option.period === currentDaySchedule.breakEndPeriod
+      );
+      if (!hasBreakEnd && breakEndOptions.length > 0) {
+        currentDaySchedule.breakEndTime = breakEndOptions[0].time;
+        currentDaySchedule.breakEndPeriod = breakEndOptions[0].period;
+      }
+
 
       return {
         ...prev,
@@ -483,11 +699,29 @@ useEffect(() => {
       if (!isAssigned) return "—";
 
       const daySchedule = normalizedSchedule.daySchedules?.[day];
-      return daySchedule ? formatTimeRange(daySchedule) : "Schedule set";
+      if (!daySchedule) return "Schedule set";
+
+      return {
+        shift: formatTimeRange(daySchedule),
+        lunchBreak: formatBreakTimeRange(
+          daySchedule.lunchBreakStartTime,
+          daySchedule.lunchBreakStartPeriod,
+          daySchedule.lunchBreakEndTime,
+          daySchedule.lunchBreakEndPeriod
+        ),
+        breakTime: formatBreakTimeRange(
+          daySchedule.breakStartTime,
+          daySchedule.breakStartPeriod,
+          daySchedule.breakEndTime,
+          daySchedule.breakEndPeriod
+        )
+      };
     }
 
     if (Array.isArray(normalizedSchedule)) {
-      return normalizedSchedule.includes(day) ? "Schedule set" : "—";
+      return normalizedSchedule.includes(day)
+        ? { shift: "Schedule set", lunchBreak: "—", breakTime: "—" }
+        : "—";
     }
 
     return "—";
@@ -781,18 +1015,37 @@ useEffect(() => {
                     <span role="columnheader">Fri</span>
                     <span role="columnheader">Sat</span>
                     <span role="columnheader">Sun</span>
+                    <span role="columnheader">Status</span>
                   </div>
                   {activeMembers.map(member => {
+                    const status = getMemberCurrentStatus(member);
                     return (
                       <div key={member.id} className="active-members-schedule-row" role="row">
                         <div className="active-members-owner" role="cell">{member.fullname}</div>
-                        <div role="cell">{formatActiveMemberDayTime(member, "Mon")}</div>
-                        <div role="cell">{formatActiveMemberDayTime(member, "Tue")}</div>
-                        <div role="cell">{formatActiveMemberDayTime(member, "Wed")}</div>
-                        <div role="cell">{formatActiveMemberDayTime(member, "Thu")}</div>
-                        <div role="cell">{formatActiveMemberDayTime(member, "Fri")}</div>
-                        <div role="cell">{formatActiveMemberDayTime(member, "Sat")}</div>
-                        <div role="cell">{formatActiveMemberDayTime(member, "Sun")}</div>
+                        {dayOptions.map(day => {
+                          const dayInfo = formatActiveMemberDayTime(member, day);
+
+                          if (typeof dayInfo === "string") {
+                            return (
+                              <div key={`${member.id}-${day}`} role="cell">{dayInfo}</div>
+                            );
+                          }
+
+                          return (
+                            <div key={`${member.id}-${day}`} role="cell" className="active-day-cell">
+                              <div>{dayInfo.shift}</div>
+                              <span className="active-day-tag lunch-tag">
+                                Lunch break: {dayInfo.lunchBreak}
+                              </span>
+                              <span className="active-day-tag break-tag">
+                                Break time: {dayInfo.breakTime}
+                              </span>
+                            </div>
+                          );
+                        })}
+                        <div role="cell">
+                          <span className={`member-status-pill ${status.className}`}>{status.label}</span>
+                        </div>
                       </div>
                     );
                   })}
@@ -960,6 +1213,24 @@ useEffect(() => {
                         daySchedule.startTime,
                         daySchedule.startPeriod
                       );
+                      const shiftRangeOptions = getTimeOptionsWithinRange(
+                        daySchedule.startTime,
+                        daySchedule.startPeriod,
+                        daySchedule.endTime,
+                        daySchedule.endPeriod
+                      );
+                      const lunchBreakEndOptions = getTimeOptionsWithinRange(
+                        daySchedule.lunchBreakStartTime,
+                        daySchedule.lunchBreakStartPeriod,
+                        daySchedule.endTime,
+                        daySchedule.endPeriod
+                      );
+                      const breakEndOptions = getTimeOptionsWithinRange(
+                        daySchedule.breakStartTime,
+                        daySchedule.breakStartPeriod,
+                        daySchedule.endTime,
+                        daySchedule.endPeriod
+                      );
 
                       return (
                         <div key={day} className="schedule-day-row">
@@ -972,43 +1243,127 @@ useEffect(() => {
                             <span>{day}</span>
                           </label>
                           {isWorkingDay ? (
-                            <div className="schedule-time-row">
-                              <select
-                                value={daySchedule.startTime}
-                                onChange={event =>
-                                  handleChangeDayTime(day, "startTime", event.target.value)
-                                }
-                              >
-                                {timeOptions.map(time => (
-                                  <option key={`${day}-start-${time}`} value={time}>
-                                    {time}
-                                  </option>
-                                ))}
-                              </select>
-                              <select
-                                value={daySchedule.startPeriod}
-                                onChange={event =>
-                                  handleChangeDayTime(day, "startPeriod", event.target.value)
-                                }
-                              >
-                                <option value="AM">AM</option>
-                                <option value="PM">PM</option>
-                              </select>
-                              <select
-                                value={`${daySchedule.endTime}|${daySchedule.endPeriod}`}
-                                onChange={event =>
-                                  handleChangeDayTime(day, "endTime", event.target.value)
-                                }
-                              >
-                                {endTimeOptions.map(option => (
-                                  <option
-                                    key={`${day}-end-${option.time}-${option.period}`}
-                                    value={`${option.time}|${option.period}`}
-                                  >
-                                    {option.time} {option.period}
-                                  </option>
-                                ))}
-                              </select>
+                            <div className="schedule-time-grid">
+                              <div className="schedule-time-label">Start time</div>
+                              <div className="schedule-time-label">End time</div>
+                              <div className="schedule-time-label">Lunch break start</div>
+                              <div className="schedule-time-label">Lunch break end</div>
+                              <div className="schedule-time-label">Break time start</div>
+                              <div className="schedule-time-label">Break time end</div>
+
+                              <div className="schedule-time-row schedule-start-time">
+                                <select
+                                  value={daySchedule.startTime}
+                                  onChange={event =>
+                                    handleChangeDayTime(day, "startTime", event.target.value)
+                                  }
+                                >
+                                  {timeOptions.map(time => (
+                                    <option key={`${day}-start-${time}`} value={time}>
+                                      {time}
+                                    </option>
+                                  ))}
+                                </select>
+                                <select
+                                  value={daySchedule.startPeriod}
+                                  onChange={event =>
+                                    handleChangeDayTime(day, "startPeriod", event.target.value)
+                                  }
+                                >
+                                  <option value="AM">AM</option>
+                                  <option value="PM">PM</option>
+                                </select>
+                              </div>
+
+                              <div className="schedule-time-row">
+                                <select
+                                  value={`${daySchedule.endTime}|${daySchedule.endPeriod}`}
+                                  onChange={event =>
+                                    handleChangeDayTime(day, "endTime", event.target.value)
+                                  }
+                                >
+                                  {endTimeOptions.map(option => (
+                                    <option
+                                      key={`${day}-end-${option.time}-${option.period}`}
+                                      value={`${option.time}|${option.period}`}
+                                    >
+                                      {option.time} {option.period}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              <div className="schedule-time-row">
+                                <select
+                                  value={`${daySchedule.lunchBreakStartTime}|${daySchedule.lunchBreakStartPeriod}`}
+                                  onChange={event =>
+                                    handleChangeDayTime(day, "lunchBreakStart", event.target.value)
+                                  }
+                                >
+                                  {shiftRangeOptions.map(option => (
+                                    <option
+                                      key={`${day}-lunch-start-${option.time}-${option.period}`}
+                                      value={`${option.time}|${option.period}`}
+                                    >
+                                      {option.time} {option.period}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              <div className="schedule-time-row">
+                                <select
+                                  value={`${daySchedule.lunchBreakEndTime}|${daySchedule.lunchBreakEndPeriod}`}
+                                  onChange={event =>
+                                    handleChangeDayTime(day, "lunchBreakEnd", event.target.value)
+                                  }
+                                >
+                                  {lunchBreakEndOptions.map(option => (
+                                    <option
+                                      key={`${day}-lunch-end-${option.time}-${option.period}`}
+                                      value={`${option.time}|${option.period}`}
+                                    >
+                                      {option.time} {option.period}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              <div className="schedule-time-row">
+                                <select
+                                  value={`${daySchedule.breakStartTime}|${daySchedule.breakStartPeriod}`}
+                                  onChange={event =>
+                                    handleChangeDayTime(day, "breakStart", event.target.value)
+                                  }
+                                >
+                                  {shiftRangeOptions.map(option => (
+                                    <option
+                                      key={`${day}-break-start-${option.time}-${option.period}`}
+                                      value={`${option.time}|${option.period}`}
+                                    >
+                                      {option.time} {option.period}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              <div className="schedule-time-row">
+                                <select
+                                  value={`${daySchedule.breakEndTime}|${daySchedule.breakEndPeriod}`}
+                                  onChange={event =>
+                                    handleChangeDayTime(day, "breakEnd", event.target.value)
+                                  }
+                                >
+                                  {breakEndOptions.map(option => (
+                                    <option
+                                      key={`${day}-break-end-${option.time}-${option.period}`}
+                                      value={`${option.time}|${option.period}`}
+                                    >
+                                      {option.time} {option.period}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
                             </div>
                           ) : (
                             <div className="schedule-not-working">Not working</div>
