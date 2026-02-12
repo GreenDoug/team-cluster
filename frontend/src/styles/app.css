@@ -1090,3 +1090,20 @@ body {
     padding: 24px;
   }
 }
+.reject-modal-card {
+  width: min(560px, 94vw);
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.reject-modal-title {
+  font-size: 22px;
+  background: linear-gradient(90deg, #0f172a 0%, #2563eb 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.reject-modal-card textarea {
+  min-height: 110px;
+  resize: vertical;
+}
