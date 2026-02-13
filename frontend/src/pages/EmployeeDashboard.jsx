@@ -32,20 +32,49 @@ export default function EmployeeDashboard() {
     return `${startTime} ${startPeriod}–${endTime} ${endPeriod}`;
   };
 
-  const formatDayScheduleTime = (schedule, day) => {
+  const formatBreakTimeRange = (
+    startTime,
+    startPeriod,
+    endTime,
+    endPeriod
+  ) => {
+    if (!startTime || !endTime) return "—";
+    return `${startTime} ${startPeriod ?? ""}–${endTime} ${endPeriod ?? ""}`.trim();
+  };
+
+  const formatEmployeeDayTime = day => {
+    const schedule = activeCluster?.schedule;
     if (!schedule || typeof schedule !== "object" || Array.isArray(schedule)) {
       return "—";
     }
 
-    const activeDays = Array.isArray(schedule.days) ? schedule.days : [];
-    if (!activeDays.includes(day)) return "—";
+    const assignedDays = Array.isArray(schedule.days) ? schedule.days : [];
+    if (!assignedDays.includes(day)) return "—";
 
     const daySchedule = schedule.daySchedules?.[day];
-    if (daySchedule && typeof daySchedule === "object") {
-      return formatScheduleTime(daySchedule);
+    if (!daySchedule || typeof daySchedule !== "object") {
+      return {
+        shift: formatScheduleTime(schedule),
+        lunchBreak: "—",
+        breakTime: "—"
+      };
     }
 
-    return formatScheduleTime(schedule);
+    return {
+      shift: formatScheduleTime(daySchedule),
+      lunchBreak: formatBreakTimeRange(
+        daySchedule.lunchBreakStartTime,
+        daySchedule.lunchBreakStartPeriod,
+        daySchedule.lunchBreakEndTime,
+        daySchedule.lunchBreakEndPeriod
+      ),
+      breakTime: formatBreakTimeRange(
+        daySchedule.breakStartTime,
+        daySchedule.breakStartPeriod,
+        daySchedule.breakEndTime,
+        daySchedule.breakEndPeriod
+      )
+    };
   };
 
   const getActiveDays = schedule => {
@@ -129,23 +158,34 @@ export default function EmployeeDashboard() {
                   <div className="employee-card-title">My Team Cluster Details</div>
                 </div>
                 <div className="employee-card-body">
-                  <div className="employee-field">
-                    <div className="employee-field-label">Cluster Name</div>
-                    <div className="employee-field-value">
-                      {activeCluster?.cluster_name ?? "Not assigned"}
+                  <div className="employee-overview-grid">
+                    <div className="employee-field employee-highlight-field">
+                      <div className="employee-field-label">Cluster Name</div>
+                      <div className="employee-field-value">
+                        {activeCluster?.cluster_name ?? "Not assigned"}
+                      </div>
                     </div>
-                  </div>
-                  <div className="employee-field">
-                    <div className="employee-field-label">Team Coach</div>
-                    <div className="employee-field-value">
-                      {activeCluster?.coach_name ?? "Pending"}
+                  <div className="employee-field employee-highlight-field">
+                      <div className="employee-field-label">Team Coach</div>
+                      <div className="employee-field-value">
+                        {activeCluster?.coach_name ?? "Pending"}
+                      </div>
+                    </div>
+                    <div className="employee-field employee-inline-stat">
+                      <div className="employee-field-label">Assigned Days</div>
+                      <div className="employee-field-value employee-stat-value">
+                        {scheduleDays.length}
+                      </div>
+                    </div>
+                    <div className="employee-field employee-inline-stat">
+                      <div className="employee-field-label">Weekly Status</div>
+                      <div className="employee-field-value employee-stat-value">
+                        {scheduleDays.length > 0 ? "Schedule set" : "Pending"}
+                      </div>
                     </div>
                   </div>
                 </div>
                 <div className="employee-card-footer">
-                  <button className="btn link" type="button">
-                    View
-                  </button>
                 </div>
               </div>
               <div className="employee-card">
@@ -153,32 +193,41 @@ export default function EmployeeDashboard() {
                   <div className="employee-card-title">My Schedule</div>
                 </div>
                 <div className="employee-card-body">
-                  <div className="schedule-week">
-                    {dayLabels.map(day => (
-                      <div
-                        key={day}
-                        className={`schedule-day${
-                          scheduleDays.includes(day) ? " active" : ""
-                        }`}
-                      >
-                        {day}
+                  <div className="active-members-schedule-table employee-schedule-table" role="table" aria-label="My schedule">
+                    <div className="active-members-schedule-header" role="row">
+                      <span role="columnheader">Member</span>
+                      {dayLabels.map(day => (
+                        <span key={`${day}-header`} role="columnheader">{day}</span>
+                      ))}
+                    </div>
+                    <div className="active-members-schedule-row" role="row">
+                      <div className="active-members-owner" role="cell">
+                        {user?.fullname ?? "Employee"}
                       </div>
-                    ))}
+                      {dayLabels.map(day => {
+                        const dayInfo = formatEmployeeDayTime(day);
+
+                        if (typeof dayInfo === "string") {
+                          return (
+                            <div key={`${day}-value`} role="cell">{dayInfo}</div>
+                          );
+                        }
+
+                        return (
+                          <div key={`${day}-value`} role="cell" className="active-day-cell">
+                            <div>{dayInfo.shift}</div>
+                            <span className="active-day-tag lunch-tag">
+                              Lunch break: {dayInfo.lunchBreak}
+                            </span>
+                            <span className="active-day-tag break-tag">
+                              Break time: {dayInfo.breakTime}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                   <div className="schedule-times">
-                    {dayLabels.map(day => {
-                      const isActive = scheduleDays.includes(day);
-                      return (
-                        <div
-                          key={`${day}-time`}
-                          className={`schedule-time${isActive ? " active" : ""}`}
-                        >
-                          {isActive
-                            ? formatDayScheduleTime(activeCluster?.schedule, day)
-                            : "—"}
-                        </div>
-                      );
-                    })}
+                   <div className="employee-schedule-caption">
                   </div>
                 </div>
               </div>

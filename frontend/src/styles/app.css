@@ -408,6 +408,44 @@ body {
   font-weight: 600;
 }
 
+.employee-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.employee-highlight-field .employee-field-value {
+  background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
+  border: 1px solid #d0dbea;
+}
+
+.employee-inline-stat {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.employee-inline-stat .employee-field-value {
+  background: transparent;
+  padding: 0;
+}
+
+.employee-stat-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1d4ed8;
+}
+
+.employee-schedule-table .active-members-schedule-header,
+.employee-schedule-table .active-members-schedule-row {
+  grid-template-columns: minmax(150px, 1.2fr) repeat(7, minmax(130px, 1fr));
+}
+
+.employee-schedule-table .active-members-owner {
+  background: #dbeafe;
+}
+
 .employee-schedule-caption {
   font-size: 12px;
   color: #6b7280;
@@ -1237,4 +1275,9 @@ body {
 .reject-modal-card textarea {
   min-height: 110px;
   resize: vertical;
+}
+@media (max-width: 900px) {
+  .employee-overview-grid {
+    grid-template-columns: 1fr;
+  }
 }
