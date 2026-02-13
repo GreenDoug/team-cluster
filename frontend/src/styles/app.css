@@ -559,7 +559,8 @@ body {
 .active-members-schedule-table {
   border: 1px solid #d1d5db;
   border-radius: 12px;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   background: #f8fafc;
 }
 
