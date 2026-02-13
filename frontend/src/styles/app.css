@@ -532,6 +532,12 @@ body {
   gap: 12px;
 }
 
+.schedule-modal .modal-body {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
 .modal-text {
   margin: 0;
   font-size: 14px;
@@ -889,6 +895,9 @@ body {
 
 .schedule-modal {
   width: min(1320px, 98vw);
+  max-height: calc(100vh - 48px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 .schedule-summary {

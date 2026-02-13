@@ -204,15 +204,21 @@ export default function CoachDashboard() {
     const startMinutes = toMinutes(startTime, startPeriod);
     const endMinutes = toMinutes(endTime, endPeriod);
 
-    if (startMinutes === null || endMinutes === null || endMinutes < startMinutes) {
+    if (startMinutes === null || endMinutes === null) {
       return [];
+    }
+
+    let rangeEndMinutes = endMinutes;
+    if (endMinutes < startMinutes) {
+      rangeEndMinutes += 24 * 60;
     }
 
     const options = [];
     let current = startMinutes;
-    while (current <= endMinutes) {
-      const hour24 = Math.floor(current / 60);
-      const minute = current % 60;
+    while (current <= rangeEndMinutes) {
+      const normalizedMinutes = ((current % (24 * 60)) + 24 * 60) % (24 * 60);
+      const hour24 = Math.floor(normalizedMinutes / 60);
+      const minute = normalizedMinutes % 60;
       const period = hour24 >= 12 ? "PM" : "AM";
       const hour12 = hour24 % 12 || 12;
       options.push({
@@ -240,8 +246,12 @@ export default function CoachDashboard() {
     const startMinutes = toMinutes(startTime, startPeriod);
     const endMinutes = toMinutes(endTime, endPeriod);
 
-    if (startMinutes === null || endMinutes === null || endMinutes <= startMinutes) {
+    if (startMinutes === null || endMinutes === null || startMinutes === endMinutes) {
       return false;
+    }
+
+    if (endMinutes < startMinutes) {
+      return nowMinutes >= startMinutes || nowMinutes < endMinutes;
     }
 
     return nowMinutes >= startMinutes && nowMinutes < endMinutes;
